@@ -1,0 +1,35 @@
+{
+	"name": "uuid-modbus",
+	"description": "Modbus library",
+	"keywords": "modbus",
+	"authors": [
+		{
+			"name": "Simon Arlott",
+			"maintainer": true
+		}
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nomis/mcu-uuid-modbus.git"
+	},
+	"version": "0.1.0",
+	"license": "GPL-3.0-or-later",
+	"homepage": "https://mcu-uuid-modbus.readthedocs.io/",
+	"export": {
+		"exclude": [
+			".uuid-uk/*",
+			"test/*"
+		]
+	},
+	"frameworks": [
+		"arduino"
+	],
+	"dependencies": {
+		"nomis/uuid-common": "^1.1.0",
+		"nomis/uuid-log": "^2.1.4"
+	},
+	"build": {
+		"flags": "-Wall -Wextra",
+		"libLDFMode": "off"
+	}
+}
