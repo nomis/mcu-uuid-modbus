@@ -36,6 +36,10 @@ uint64_t get_uptime_ms() {
 
 } // namespace uuid
 
+void setUp() {
+	fake_millis = 0;
+}
+
 /**
  * Write 1 holding register.
  */
@@ -82,10 +86,103 @@ void write_holding_1() {
 	TEST_ASSERT_EQUAL_INT(0xABCD, resp->data()[0]);
 }
 
+/**
+ * Response has the wrong length for the message data.
+ */
+void write_wrong_length_too_long() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.write_holding_register(7, 0x1234, 0xABCD);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x06, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0xAB, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0xCD, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x06, 0x12, 0x34, 0xAB, 0xCD, 0xEE /* should not be present */, 0x7E, 0xA9 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_LENGTH, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+	TEST_ASSERT_FALSE(resp->success());
+
+	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+}
+
+/**
+ * Response has the wrong length for the message data.
+ */
+void write_wrong_length_too_short() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.write_holding_register(7, 0x1234, 0xABCD);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x06, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0xAB, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0xCD, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x06, 0x12, 0x34, 0xAB, /* missing: 0xCD, */ 0x66, 0x32 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_LENGTH, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+	TEST_ASSERT_FALSE(resp->success());
+
+	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
 	RUN_TEST(write_holding_1);
+
+	RUN_TEST(write_wrong_length_too_long);
+	RUN_TEST(write_wrong_length_too_short);
 
 	return UNITY_END();
 }

@@ -1,6 +1,6 @@
 /*
  * uuid-modbus - Microcontroller Modbus library
- * Copyright 2021  Simon Arlott
+ * Copyright 2021-2022  Simon Arlott
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,10 @@ uint64_t get_uptime_ms() {
 }
 
 } // namespace uuid
+
+void setUp() {
+	fake_millis = 0;
+}
 
 void test() {
 	ModbusDevice device;
