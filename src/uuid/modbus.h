@@ -48,6 +48,8 @@ static constexpr uint16_t MAX_MESSAGE_SIZE = 256; /*!< Maximum size of a message
 static constexpr uint32_t INTER_FRAME_TIMEOUT_MS = 2; /*!< Timeout between frames. @since 0.1.0 */
 static constexpr uint16_t DEFAULT_TIMEOUT_S = 10; /*!< Default time to wait for a response. @since 0.1.0 */
 
+extern const uuid::log::Logger logger; /*!< uuid::log::Logger instance for Modbus library. @since 0.1.0 */
+
 using frame_buffer_t = std::array<uint8_t, MAX_MESSAGE_SIZE + 1>; /*!< Buffer for receiving frames. @since 0.1.0 */
 
 /**
@@ -100,13 +102,14 @@ enum ResponseStatus : uint8_t {
  * Response message.
  *
  * This will be created when a request is submitted and then later updated with
- * the outcome. Poll the #status of the response to know when to access data.
+ * the outcome. Poll the status() of the response to know when to access data.
  *
  * @since 0.1.0
  */
 class Response {
 	/**
-	 * SerialClient needs to be able to set the status and store response data.
+	 * SerialClient needs to be able to set the status and outcome of the
+	 * response.
 	 *
 	 * @since 0.1.0
 	 */
@@ -174,27 +177,45 @@ public:
 	 */
 	inline uint8_t exception_code() const { return exception_code_; }
 
+protected:
+	Response() = default;
+
+	/**
+	 * Check the length of the message frame is correct and log an error if it
+	 * is not.
+	 *
+	 * @param[in] frame Message frame buffer.
+	 * @param[in] actual Actual length of the message frame.
+	 * @param[in] expected Expected length of the message frame.
+	 * @return True if the message frame length matches, otherwise false.
+	 * @since 0.1.0
+	 */
+	bool check_length(frame_buffer_t &frame, uint16_t actual, uint16_t expected);
+
+	/**
+	 * Parse a message frame buffer and store the outcome in this response.
+	 *
+	 * @param[in] frame Message frame buffer.
+	 * @param[in] len Size of message frame.
+	 * @return The status result of message parsing.
+	 * @since 0.1.0
+	 */
+	virtual ResponseStatus parse(frame_buffer_t &frame, uint16_t len) = 0;
+
 private:
 	ResponseStatus status_ = ResponseStatus::QUEUED; /*!< Status of response message. @since 0.1.0 */
 	uint8_t exception_code_ = 0; /*!< Device exception response. @since 0.1.0 */
 };
 
 /**
- * Register response message.
+ * Register data response message.
  *
  * This will be created when a request is submitted and then later updated with
  * the outcome. Poll the status() of the response to know when to access data.
  *
  * @since 0.1.0
  */
-class RegisterResponse: public Response {
-	/**
-	 * SerialClient needs to be able to store response data.
-	 *
-	 * @since 0.1.0
-	 */
-	friend class SerialClient;
-
+class RegisterDataResponse: public Response {
 public:
 	/**
 	 * Data from the device response, which may be fewer or more register values
@@ -207,26 +228,65 @@ public:
 	 */
 	inline const std::vector<uint16_t>& data() const { return data_; };
 
-private:
+protected:
+	/**
+	 * Parse a message frame buffer and store the outcome in this response.
+	 *
+	 * @param[in] frame Message frame buffer.
+	 * @param[in] len Size of message frame.
+	 * @return The status result of message parsing.
+	 * @since 0.1.0
+	 */
+	ResponseStatus parse(frame_buffer_t &frame, uint16_t len) override;
+
 	std::vector<uint16_t> data_; /*!< Data from device response. @since 0.1.0 */
+};
+
+/**
+ * Register write response message.
+ *
+ * This will be created when a request is submitted and then later updated with
+ * the outcome. Poll the status() of the response to know when to access data.
+ *
+ * @since 0.1.0
+ */
+class RegisterWriteResponse: public RegisterDataResponse {
+public:
+	/**
+	 * Address from the device response, which should match the address
+	 * that was requested.
+	 *
+	 * Valid only if the status() is ResponseStatus::SUCCESS.
+	 *
+	 * @return Address from the response.
+	 * @since 0.1.0
+	 */
+	uint16_t address() const { return address_; }
+
+protected:
+	/**
+	 * Parse a message frame buffer and store the outcome in this response.
+	 *
+	 * @param[in] frame Message frame buffer.
+	 * @param[in] len Size of message frame.
+	 * @return The status result of message parsing.
+	 * @since 0.1.0
+	 */
+	ResponseStatus parse(frame_buffer_t &frame, uint16_t len) override;
+
+private:
+	uint16_t address_; /*!< Address from device response. @since 0.1.0 */
 };
 
 /**
  * Exception status response message.
  *
  * This will be created when a request is submitted and then later updated with
- * the outcome. Poll the #status of the response to know when to access data.
+ * the outcome. Poll the status() of the response to know when to access data.
  *
  * @since 0.1.0
  */
 class ExceptionStatusResponse: public Response {
-	/**
-	 * SerialClient needs to be able to set the response data.
-	 *
-	 * @since 0.1.0
-	 */
-	friend class SerialClient;
-
 public:
 	/**
 	 * Output data from the device response.
@@ -237,6 +297,17 @@ public:
 	 * @since 0.1.0
 	 */
 	inline uint8_t data() const { return data_; };
+
+protected:
+	/**
+	 * Parse a message frame buffer and store the outcome in this response.
+	 *
+	 * @param[in] frame Message frame buffer.
+	 * @param[in] len Size of message frame.
+	 * @return The status result of message parsing.
+	 * @since 0.1.0
+	 */
+	ResponseStatus parse(frame_buffer_t &frame, uint16_t len) override;
 
 private:
 	uint8_t data_; /*!< Output data from device response. @since 0.1.0 */
@@ -391,7 +462,7 @@ public:
 	 *         future when processing is complete.
 	 * @since 0.1.0
 	 */
-	std::shared_ptr<RegisterResponse> read_holding_registers(uint16_t device,
+	std::shared_ptr<RegisterDataResponse> read_holding_registers(uint16_t device,
 		uint16_t address, uint16_t size, uint8_t timeout_s = DEFAULT_TIMEOUT_S);
 
 	/**
@@ -407,7 +478,7 @@ public:
 	 *         future when processing is complete.
 	 * @since 0.1.0
 	 */
-	std::shared_ptr<RegisterResponse> read_input_registers(uint16_t device,
+	std::shared_ptr<RegisterDataResponse> read_input_registers(uint16_t device,
 		uint16_t address, uint16_t size, uint8_t timeout_s = DEFAULT_TIMEOUT_S);
 
 	/**
@@ -424,7 +495,7 @@ public:
 	 *         in the future when processing is complete.
 	 * @since 0.1.0
 	 */
-	std::shared_ptr<RegisterResponse> write_holding_register(uint16_t device,
+	std::shared_ptr<RegisterWriteResponse> write_holding_register(uint16_t device,
 		uint16_t address, uint16_t value, uint8_t timeout_s = DEFAULT_TIMEOUT_S);
 
 	/**
@@ -483,19 +554,6 @@ private:
 	 * @since 0.1.0
 	 */
 	uint16_t calc_crc() const;
-
-	/**
-	 * Check the length of the message frame is correct.
-	 *
-	 * Updates the response status and logs an error if it is not.
-	 *
-	 * @param[in] len Expected length of the message frame.
-	 * @return True if the message frame length matches, otherwise false,
-	 * @since 0.1.0
-	 */
-	bool check_length(uint16_t len);
-
-	static const uuid::log::Logger logger_; /*!< uuid::log::Logger instance for modbus clients. @since 0.1.0 */
 
 	::HardwareSerial *serial_; /*!< Serial port device. @since 0.1.0 */
 	std::deque<std::unique_ptr<Request>> requests_; /*!< Pending requests. @since 0.1.0 */

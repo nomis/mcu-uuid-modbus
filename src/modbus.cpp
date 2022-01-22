@@ -17,3 +17,18 @@
  */
 
 #include <uuid/modbus.h>
+
+#include <Arduino.h>
+
+#include <uuid/log.h>
+
+namespace uuid {
+
+namespace modbus {
+
+static const char __pstr__loggername[] __attribute__((__aligned__(sizeof(int)))) PROGMEM = "modbus";
+const uuid::log::Logger logger{reinterpret_cast<const __FlashStringHelper *>(__pstr__loggername), uuid::log::Facility::DAEMON};
+
+} // namespace modbus
+
+} // namespace uuid

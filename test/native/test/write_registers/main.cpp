@@ -77,9 +77,9 @@ void write_holding_1() {
 	TEST_ASSERT_TRUE(resp->done());
 	TEST_ASSERT_TRUE(resp->success());
 
-	TEST_ASSERT_EQUAL_INT(2, resp->data().size());
-	TEST_ASSERT_EQUAL_INT(0x1234, resp->data()[0]);
-	TEST_ASSERT_EQUAL_INT(0xABCD, resp->data()[1]);
+	TEST_ASSERT_EQUAL_INT(1, resp->data().size());
+	TEST_ASSERT_EQUAL_INT(0x1234, resp->address());
+	TEST_ASSERT_EQUAL_INT(0xABCD, resp->data()[0]);
 }
 
 int main(int argc, char *argv[]) {

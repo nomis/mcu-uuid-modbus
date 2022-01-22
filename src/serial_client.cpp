@@ -42,9 +42,6 @@ namespace uuid {
 
 namespace modbus {
 
-static const char __pstr__logger_name[] __attribute__((__aligned__(sizeof(int)))) PROGMEM = "modbus";
-const uuid::log::Logger SerialClient::logger_{reinterpret_cast<const __FlashStringHelper *>(__pstr__logger_name), uuid::log::Facility::DAEMON};
-
 SerialClient::SerialClient(::HardwareSerial *serial) : serial_(serial) {
 }
 
@@ -123,7 +120,7 @@ void SerialClient::receive() {
 	if (frame_pos_ == 0) {
 		if ((now_ms - last_tx_ms_) >= request.timeout_s_ * 1000) {
 			response.status_ = ResponseStatus::FAILURE_TIMEOUT;
-			logger_.notice(F("Timeout waiting for response to function %02X from device %u"),
+			logger.notice(F("Timeout waiting for response to function %02X from device %u"),
 				frame_[1], frame_[0]);
 			return;
 		}
@@ -163,13 +160,13 @@ void SerialClient::complete() {
 
 	if (frame_pos_ < 4) {
 		response.status_ = ResponseStatus::FAILURE_TOO_SHORT;
-		logger_.err(F("Received short frame from device %u"), frame_[0]);
+		logger.err(F("Received short frame from device %u"), frame_[0]);
 		return;
 	}
 
 	if (frame_pos_ > MAX_MESSAGE_SIZE) {
 		response.status_ = ResponseStatus::FAILURE_TOO_LONG;
-		logger_.err(F("Received oversized frame from device %u"), frame_[0]);
+		logger.err(F("Received oversized frame from device %u"), frame_[0]);
 		return;
 	}
 
@@ -179,21 +176,21 @@ void SerialClient::complete() {
 
 	if (exp_crc != act_crc) {
 		response.status_ = ResponseStatus::FAILURE_CRC;
-		logger_.err(F("Received frame with invalid CRC %04X from device %u with function %02X, expected %04X"),
+		logger.err(F("Received frame with invalid CRC %04X from device %u with function %02X, expected %04X"),
 			act_crc, frame_[0], frame_[1], exp_crc);
 		return;
 	}
 
 	if (frame_[0] != request.device_) {
 		response.status_ = ResponseStatus::FAILURE_ADDRESS;
-		logger_.err(F("Received function %02X from device %u, expected device %u"),
+		logger.err(F("Received function %02X from device %u, expected device %u"),
 			frame_[1], frame_[0], request.device_);
 		return;
 	}
 
 	if ((frame_[1] & ~0x80) != request.function_code_) {
 		response.status_ = ResponseStatus::FAILURE_FUNCTION;
-		logger_.err(F("Received function %02X from device %u, expected function %02X"),
+		logger.err(F("Received function %02X from device %u, expected function %02X"),
 			frame_[1], frame_[0], request.function_code_);
 		return;
 	}
@@ -205,55 +202,16 @@ void SerialClient::complete() {
 		} else {
 			response.exception_code_ = frame_[2];
 		}
-		logger_.notice(F("Exception code %02X for function %02X from device %u"),
+		logger.notice(F("Exception code %02X for function %02X from device %u"),
 			response.exception_code_, frame_[1] & ~0x80, frame_[0]);
 		return;
 	}
 
-	switch (request.function_code_) {
-	case FunctionCode::READ_INPUT_REGISTERS:
-	case FunctionCode::READ_HOLDING_REGISTERS: {
-			RegisterResponse &reg_response = static_cast<RegisterResponse&>(response);
-
-			if (!check_length(3 + 2 * frame_[2])) {
-				return;
-			}
-
-			for (uint16_t i = 0; i < frame_[2]; i++) {
-				reg_response.data_.emplace_back((frame_[3 + i * 2] << 8) | frame_[4 + i * 2]);
-			}
-		}
-		break;
-
-	case FunctionCode::WRITE_SINGLE_REGISTER: {
-			RegisterResponse &reg_response = static_cast<RegisterResponse&>(response);
-
-			if (!check_length(6)) {
-				return;
-			}
-
-			reg_response.data_.emplace_back((frame_[2] << 8) | frame_[3]);
-			reg_response.data_.emplace_back((frame_[4] << 8) | frame_[5]);
-		}
-		break;
-
-	case FunctionCode::READ_EXCEPTION_STATUS: {
-			ExceptionStatusResponse &exc_response = static_cast<ExceptionStatusResponse&>(response);
-
-			if (!check_length(3)) {
-				return;
-			}
-
-			exc_response.data_ = frame_[2];
-		}
-		break;
-	}
-
-	response.status_ = ResponseStatus::SUCCESS;
+	response.status_ = response.parse(frame_, frame_pos_);
 }
 
 void SerialClient::log_frame(const __FlashStringHelper *prefix) {
-	if (logger_.enabled(uuid::log::Level::TRACE)) {
+	if (logger.enabled(uuid::log::Level::TRACE)) {
 		static constexpr uint8_t BYTES_PER_LINE = 16;
 		std::vector<char> message(3 * BYTES_PER_LINE + 1);
 		uint8_t pos = 0;
@@ -264,7 +222,7 @@ void SerialClient::log_frame(const __FlashStringHelper *prefix) {
 				frame_[i]);
 
 			if (pos == BYTES_PER_LINE || i == frame_pos_ - 1) {
-				logger_.trace(F("%S%s"), prefix, message.data());
+				logger.trace(F("%S%s"), prefix, message.data());
 				pos = 0;
 				prefix = F("  ");
 			}
@@ -291,20 +249,9 @@ uint16_t SerialClient::calc_crc() const {
 	return crc;
 }
 
-bool SerialClient::check_length(uint16_t len) {
-	if (frame_pos_ != len) {
-		requests_.front()->response_->status_ = ResponseStatus::FAILURE_LENGTH;
-		logger_.err(F("Length mismatch for function %02X from device %u, expected %u received %u"),
-			frame_[1], frame_[0], len, frame_pos_);
-		return false;
-	} else {
-		return true;
-	}
-}
-
-std::shared_ptr<RegisterResponse> SerialClient::read_holding_registers(
+std::shared_ptr<RegisterDataResponse> SerialClient::read_holding_registers(
 		uint16_t device, uint16_t address, uint16_t size, uint8_t timeout_s) {
-	auto response = std::make_shared<RegisterResponse>();
+	auto response = std::make_shared<RegisterDataResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
 			|| device > DeviceAddressType::MAX_UNICAST
@@ -319,9 +266,9 @@ std::shared_ptr<RegisterResponse> SerialClient::read_holding_registers(
 	return response;
 }
 
-std::shared_ptr<RegisterResponse> SerialClient::read_input_registers(
+std::shared_ptr<RegisterDataResponse> SerialClient::read_input_registers(
 		uint16_t device, uint16_t address, uint16_t size, uint8_t timeout_s) {
-	auto response = std::make_shared<RegisterResponse>();
+	auto response = std::make_shared<RegisterDataResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
 			|| device > DeviceAddressType::MAX_UNICAST
@@ -336,9 +283,9 @@ std::shared_ptr<RegisterResponse> SerialClient::read_input_registers(
 	return response;
 }
 
-std::shared_ptr<RegisterResponse> SerialClient::write_holding_register(
+std::shared_ptr<RegisterWriteResponse> SerialClient::write_holding_register(
 		uint16_t device, uint16_t address, uint16_t value, uint8_t timeout_s) {
-	auto response = std::make_shared<RegisterResponse>();
+	auto response = std::make_shared<RegisterWriteResponse>();
 
 	if (device > DeviceAddressType::MAX_UNICAST) {
 		response->status_ = ResponseStatus::FAILURE_INVALID;
