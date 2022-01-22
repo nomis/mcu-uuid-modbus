@@ -43,77 +43,77 @@ static __attribute__((unused)) void yield(void) {}
 
 class Print {
 public:
-    virtual ~Print() = default;
-    virtual size_t write(uint8_t c __attribute__((unused))) { return 1; }
-    virtual size_t write(const uint8_t *buffer __attribute__((unused)), size_t size) { return size; }
-    size_t print(char c) { return write((uint8_t)c); }
-    size_t print(const char *data) { return write(reinterpret_cast<const uint8_t *>(data), strlen(data)); }
-    size_t print(const __FlashStringHelper *data) { return print(reinterpret_cast<const char *>(data)); }
-    size_t println() { return print("\r\n"); }
-    size_t println(const char *data) { return print(data) + println(); }
-    size_t println(const __FlashStringHelper *data) { return print(reinterpret_cast<const char *>(data)) + println(); }
-    virtual void flush() { };
+	virtual ~Print() = default;
+	virtual size_t write(uint8_t c __attribute__((unused))) { return 1; }
+	virtual size_t write(const uint8_t *buffer __attribute__((unused)), size_t size) { return size; }
+	size_t print(char c) { return write((uint8_t)c); }
+	size_t print(const char *data) { return write(reinterpret_cast<const uint8_t *>(data), strlen(data)); }
+	size_t print(const __FlashStringHelper *data) { return print(reinterpret_cast<const char *>(data)); }
+	size_t println() { return print("\r\n"); }
+	size_t println(const char *data) { return print(data) + println(); }
+	size_t println(const __FlashStringHelper *data) { return print(reinterpret_cast<const char *>(data)) + println(); }
+	virtual void flush() { };
 };
 
 class Stream: public Print {
 public:
-    virtual int available() = 0;
-    virtual int read() = 0;
-    virtual int peek() = 0;
+	virtual int available() = 0;
+	virtual int read() = 0;
+	virtual int peek() = 0;
 };
 
 class HardwareSerial: public Stream {
 public:
-    void begin(unsigned long baud __attribute__((unused)),
-            uint8_t config __attribute__((unused))) {
-    }
+	void begin(unsigned long baud __attribute__((unused)),
+			uint8_t config __attribute__((unused))) {
+	}
 
-    virtual int availableForWrite(void) = 0;
-    virtual size_t write(uint8_t c) = 0;
-    virtual size_t write(const uint8_t *buffer, size_t size) = 0;
+	virtual int availableForWrite(void) = 0;
+	virtual size_t write(uint8_t c) = 0;
+	virtual size_t write(const uint8_t *buffer, size_t size) = 0;
 };
 
 class ModbusDevice: public HardwareSerial {
 public:
-    int available() override {
-        return tx_.size();
-    }
+	int available() override {
+		return tx_.size();
+	}
 
-    int read() override {
-        if (!tx_.empty()) {
-            uint8_t value = tx_.front();
-            tx_.pop_front();
-            return value;
-        } else {
-            return -1;
-        }
-    }
+	int read() override {
+		if (!tx_.empty()) {
+			uint8_t value = tx_.front();
+			tx_.pop_front();
+			return value;
+		} else {
+			return -1;
+		}
+	}
 
-    int peek() override {
-        if (!tx_.empty()) {
-            return tx_.front();
-        } else {
-            return -1;
-        }
-    }
+	int peek() override {
+		if (!tx_.empty()) {
+			return tx_.front();
+		} else {
+			return -1;
+		}
+	}
 
-    int availableForWrite(void) override {
-        return available_write_;
-    }
+	int availableForWrite(void) override {
+		return available_write_;
+	}
 
-    size_t write(uint8_t c) override {
-        rx_.push_back(c);
-        return 1;
-    }
+	size_t write(uint8_t c) override {
+		rx_.push_back(c);
+		return 1;
+	}
 
-    size_t write(const uint8_t *buffer, size_t size) override {
-        rx_.insert(rx_.end(), buffer, buffer + size);
-        return size;
-    }
+	size_t write(const uint8_t *buffer, size_t size) override {
+		rx_.insert(rx_.end(), buffer, buffer + size);
+		return size;
+	}
 
-    int available_write_ = 512;
-    std::deque<uint8_t> rx_;
-    std::deque<uint8_t> tx_;
+	int available_write_ = 512;
+	std::deque<uint8_t> rx_;
+	std::deque<uint8_t> tx_;
 };
 
 #endif
