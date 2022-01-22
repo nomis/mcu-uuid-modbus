@@ -1,6 +1,6 @@
 /*
  * uuid-modbus - Microcontroller Modbus library
- * Copyright 2021  Simon Arlott
+ * Copyright 2021-2022  Simon Arlott
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,26 +84,48 @@ public:
 	static Level get_log_level(const Handler *handler) { return Level::ALL; }
 
 	static inline bool enabled(Level level) { return true; }
-	void emerg(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void emerg(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void alert(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void alert(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void crit(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void crit(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void err(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void err(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void warning(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void warning(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void notice(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void notice(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void info(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void info(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void debug(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void debug(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void trace(const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void trace(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
-	void log(Level level, Facility facility, const char *format, ...) const { va_list ap; va_start(ap, format); vprintf(format, ap); va_end(ap); printf("\n"); }
-	void log(Level level, Facility facility, const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void emerg(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void emerg(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void alert(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void alert(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void crit(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void crit(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void err(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void err(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void warning(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void warning(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void notice(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void notice(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void info(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void info(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void debug(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void debug(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void trace(const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void trace(const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+	void log(Level level, Facility facility, const char *format, ...) const { va_list ap; va_start(ap, format); __vprintf(format, ap); va_end(ap); printf("\n"); }
+	void log(Level level, Facility facility, const __FlashStringHelper *format, ...) const { va_list ap; va_start(ap, format); __vprintf(reinterpret_cast<const char *>(format), ap); va_end(ap); printf("\n"); }
+
+private:
+	static void __vprintf(const char *format, va_list &ap) {
+		std::string native_format;
+
+		char previous = 0;
+		for (size_t i = 0; i < strlen(format); i++) {
+			char c = format[i];
+
+			// This would be a lot easier if the ESP8266 platform
+			// simply read all strings with 32-bit accesses instead
+			// of repurposing %S (wchar_t).
+			if (previous == '%' && c == 'S') {
+				c = 's';
+			}
+
+			native_format += c;
+			previous = c;
+		}
+
+		vprintf(native_format.c_str(), ap);
+	}
 };
 
 } // namespace log
