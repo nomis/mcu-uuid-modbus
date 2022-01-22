@@ -75,7 +75,7 @@ void SerialClient::encode() {
 
 	frame_pos_ = request.encode(frame_);
 
-	if (frame_pos_ + 2 > MAX_MESSAGE_SIZE) {
+	if (frame_pos_ > MAX_MESSAGE_SIZE - 2) {
 		response.status_ = ResponseStatus::FAILURE_INVALID;
 		return;
 	}
@@ -113,25 +113,10 @@ void SerialClient::transmit() {
 }
 
 void SerialClient::receive() {
-	auto &request = *requests_.front().get();
-	auto &response = *request.response_.get();
-	uint32_t now_ms = millis();
+	uint32_t now_ms = ::millis();
+	int data = 0;
 
-	if (frame_pos_ == 0) {
-		if ((now_ms - last_tx_ms_) >= request.timeout_s_ * 1000) {
-			response.status_ = ResponseStatus::FAILURE_TIMEOUT;
-			logger.notice(F("Timeout waiting for response to function %02X from device %u"),
-				frame_[1], frame_[0]);
-			return;
-		}
-	} else if (now_ms - last_rx_ms_ >= INTER_FRAME_TIMEOUT_MS) {
-		if (!response.done()) {
-			complete();
-		}
-		return;
-	}
-
-	while (1) {
+	do {
 		int available = serial_->available();
 
 		if (!available) {
@@ -139,15 +124,32 @@ void SerialClient::receive() {
 		}
 
 		while (available-- > 0) {
-			int data = serial_->read();
+			data = serial_->read();
 
 			if (data == -1) {
-				return;
+				break;
 			}
 
 			if (frame_pos_ < frame_.size()) {
 				frame_[frame_pos_++] = data;
 			}
+
+			now_ms = ::millis();
+			last_rx_ms_ = now_ms;
+		}
+	} while (data != -1);
+
+	if (frame_pos_ == 0) {
+		auto &request = *requests_.front().get();
+
+		if ((now_ms - last_tx_ms_) >= request.timeout_s_ * 1000) {
+			request.response_->status_ = ResponseStatus::FAILURE_TIMEOUT;
+			logger.notice(F("Timeout waiting for response to function %02X from device %u"),
+				frame_[1], frame_[0]);
+		}
+	} else if (now_ms - last_rx_ms_ >= INTER_FRAME_TIMEOUT_MS) {
+		if (!requests_.front()->response_->done()) {
+			complete();
 		}
 	}
 }
