@@ -97,7 +97,6 @@ void SerialClient::transmit() {
 	}
 
 	frame_pos_ = 0;
-	rx_frame_size_ = 0;
 	requests_.front()->response().status(ResponseStatus::WAITING);
 }
 

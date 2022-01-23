@@ -587,7 +587,6 @@ private:
 	frame_buffer_t frame_; /*!< Current message frame. @since 0.1.0 */
 	uint16_t frame_pos_ = 0; /*!< Position in message frame. @since 0.1.0 */
 
-	uint16_t rx_frame_size_ = 0; /*!< Size of response frame to receive. @since 0.1.0 */
 	uint32_t last_rx_ms_ = 0; /*!< Time that the last character was received. @since 0.1.0 */
 
 	uint16_t tx_frame_size_ = 0; /*!< Size of request frame to transmit. @since 0.1.0 */
