@@ -25,45 +25,25 @@
 #include <cstdint>
 #include <memory>
 
+#include <make_unique.cpp>
+
 namespace uuid {
 
 namespace modbus {
 
-bool Response::check_length(frame_buffer_t &frame, uint16_t actual, uint16_t expected) {
-	if (actual != expected) {
-		logger.err(F("Length mismatch for function %02X from device %u, expected %u received %u"),
-			frame[1], frame[0], expected, actual);
-		return false;
+std::shared_ptr<const ExceptionStatusResponse> SerialClient::read_exception_status(
+		uint16_t device, uint8_t timeout_s) {
+	auto response = std::make_shared<ExceptionStatusResponse>();
+
+	if (device < DeviceAddressType::MIN_UNICAST
+			|| device > DeviceAddressType::MAX_UNICAST) {
+		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
-		return true;
-	}
-}
-
-ResponseStatus RegisterDataResponse::parse(frame_buffer_t &frame, uint16_t len) {
-	if (len < 3) {
-		logger.err(F("Incomplete message for function %02X from device %u, expected 3+ received %u"),
-			frame[1], frame[0], len);
-		return ResponseStatus::FAILURE_LENGTH;
-	} else if (!check_length(frame, len, 3 + 2 * frame[2])) {
-		return ResponseStatus::FAILURE_LENGTH;
+		requests_.push_back(std::make_unique<Request>(device,
+			FunctionCode::READ_EXCEPTION_STATUS, timeout_s, response));
 	}
 
-	for (uint16_t i = 0; i < frame[2]; i++) {
-		data_.emplace_back((frame[3 + i * 2] << 8) | frame[4 + i * 2]);
-	}
-
-	return ResponseStatus::SUCCESS;
-}
-
-ResponseStatus RegisterWriteResponse::parse(frame_buffer_t &frame, uint16_t len) {
-	if (!check_length(frame, len, 6)) {
-		return ResponseStatus::FAILURE_LENGTH;
-	}
-
-	address_ = (frame[2] << 8) | frame[3];
-	data_.emplace_back((frame[4] << 8) | frame[5]);
-
-	return ResponseStatus::SUCCESS;
+	return response;
 }
 
 ResponseStatus ExceptionStatusResponse::parse(frame_buffer_t &frame, uint16_t len) {

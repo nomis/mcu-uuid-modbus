@@ -41,21 +41,14 @@ uint16_t Request::encode(frame_buffer_t &frame) {
 	return 2;
 }
 
-RegisterRequest::RegisterRequest(uint16_t device, uint8_t function_code,
-		uint8_t timeout_s, uint16_t address, uint16_t data,
-		const std::shared_ptr<Response> &response)
-		: Request(device, function_code, timeout_s, response),
-		address_(address), data_(data) {
-}
-
-uint16_t RegisterRequest::encode(frame_buffer_t &frame) {
-	frame[0] = device();
-	frame[1] = function_code();
-	frame[2] = address() >> 8;
-	frame[3] = address() & 0xFF;
-	frame[4] = data() >> 8;
-	frame[5] = data() & 0xFF;
-	return 6;
+bool Response::check_length(frame_buffer_t &frame, uint16_t actual, uint16_t expected) {
+	if (actual != expected) {
+		logger.err(F("Length mismatch for function %02X from device %u, expected %u received %u"),
+			frame[1], frame[0], expected, actual);
+		return false;
+	} else {
+		return true;
+	}
 }
 
 } // namespace modbus

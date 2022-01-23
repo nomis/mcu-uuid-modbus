@@ -27,17 +27,6 @@
 
 #include <uuid/log.h>
 
-#ifndef __cpp_lib_make_unique
-namespace std {
-
-template<typename _Tp, typename... _Args>
-inline unique_ptr<_Tp> make_unique(_Args&&... __args) {
-		return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...));
-}
-
-} // namespace std
-#endif
-
 namespace uuid {
 
 namespace modbus {
@@ -249,70 +238,6 @@ uint16_t SerialClient::calc_crc() const {
 	}
 
 	return crc;
-}
-
-std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers(
-		uint16_t device, uint16_t address, uint16_t size, uint8_t timeout_s) {
-	auto response = std::make_shared<RegisterDataResponse>();
-
-	if (device < DeviceAddressType::MIN_UNICAST
-			|| device > DeviceAddressType::MAX_UNICAST
-			|| size > 0x007D) {
-		response->status(ResponseStatus::FAILURE_INVALID);
-	} else {
-		requests_.push_back(std::make_unique<RegisterRequest>(device,
-			FunctionCode::READ_HOLDING_REGISTERS, timeout_s, address, size,
-			response));
-	}
-
-	return response;
-}
-
-std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
-		uint16_t device, uint16_t address, uint16_t size, uint8_t timeout_s) {
-	auto response = std::make_shared<RegisterDataResponse>();
-
-	if (device < DeviceAddressType::MIN_UNICAST
-			|| device > DeviceAddressType::MAX_UNICAST
-			|| size > 0x007D) {
-		response->status(ResponseStatus::FAILURE_INVALID);
-	} else {
-		requests_.push_back(std::make_unique<RegisterRequest>(device,
-			FunctionCode::READ_INPUT_REGISTERS, timeout_s, address, size,
-			response));
-	}
-
-	return response;
-}
-
-std::shared_ptr<const RegisterWriteResponse> SerialClient::write_holding_register(
-		uint16_t device, uint16_t address, uint16_t value, uint8_t timeout_s) {
-	auto response = std::make_shared<RegisterWriteResponse>();
-
-	if (device > DeviceAddressType::MAX_UNICAST) {
-		response->status(ResponseStatus::FAILURE_INVALID);
-	} else {
-		requests_.push_back(std::make_unique<RegisterRequest>(device,
-			FunctionCode::WRITE_SINGLE_REGISTER, timeout_s, address, value,
-			response));
-	}
-
-	return response;
-}
-
-std::shared_ptr<const ExceptionStatusResponse> SerialClient::read_exception_status(
-		uint16_t device, uint8_t timeout_s) {
-	auto response = std::make_shared<ExceptionStatusResponse>();
-
-	if (device < DeviceAddressType::MIN_UNICAST
-			|| device > DeviceAddressType::MAX_UNICAST) {
-		response->status(ResponseStatus::FAILURE_INVALID);
-	} else {
-		requests_.push_back(std::make_unique<Request>(device,
-			FunctionCode::READ_EXCEPTION_STATUS, timeout_s, response));
-	}
-
-	return response;
 }
 
 } // namespace modbus
