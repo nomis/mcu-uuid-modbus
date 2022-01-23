@@ -4,12 +4,12 @@ mcu-uuid-modbus
 Description
 -----------
 
-Microcontroller asynchronous Modbus library
+Microcontroller asynchronous `Modbus`_ library
 
 Purpose
 -------
 
-Provides an asynchronous client for communicating with Modbus devices. This
+Provides an asynchronous client for communicating with `Modbus`_ devices. This
 library is for single threaded applications and cannot be used from an interrupt
 context.
 
@@ -43,3 +43,5 @@ Resources
    Namespace reference <https://mcu-doxygen.uuid.uk/namespaceuuid_1_1modbus.html>
    changelog
    Issue tracker <https://github.com/nomis/mcu-uuid-modbus/issues>
+
+.. _Modbus: https://modbus.org/
