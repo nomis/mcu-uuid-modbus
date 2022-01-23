@@ -62,6 +62,13 @@ void no_response() {
 		fake_millis++;
 		TEST_ASSERT_LESS_THAN(15000, fake_millis);
 	}
+
+	TEST_ASSERT_EQUAL_INT(10000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
 }
 
 int main(int argc, char *argv[]) {
