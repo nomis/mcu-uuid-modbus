@@ -6,7 +6,7 @@
 class SerialLogHandler;
 
 static uuid::modbus::SerialClient client{&Serial1};
-static std::shared_ptr<uuid::modbus::RegisterDataResponse> response;
+static std::shared_ptr<const uuid::modbus::RegisterDataResponse> response;
 static void setup_logging();
 
 void setup() {

@@ -76,7 +76,7 @@ void SerialClient::encode() {
 	frame_pos_ = request.encode(frame_);
 
 	if (frame_pos_ > MAX_MESSAGE_SIZE - 2) {
-		response.status_ = ResponseStatus::FAILURE_INVALID;
+		response.status(ResponseStatus::FAILURE_INVALID);
 		return;
 	}
 
@@ -85,7 +85,7 @@ void SerialClient::encode() {
 	frame_[frame_pos_++] = crc >> 8;
 
 	tx_frame_size_ = frame_pos_;
-	response.status_ = ResponseStatus::TRANSMIT;
+	response.status(ResponseStatus::TRANSMIT);
 
 	log_frame(F("->"));
 	frame_pos_ = 0;
@@ -109,7 +109,7 @@ void SerialClient::transmit() {
 
 	frame_pos_ = 0;
 	rx_frame_size_ = 0;
-	requests_.front()->response_->status_ = ResponseStatus::WAITING;
+	requests_.front()->response_->status(ResponseStatus::WAITING);
 }
 
 void SerialClient::receive() {
@@ -143,7 +143,7 @@ void SerialClient::receive() {
 		auto &request = *requests_.front().get();
 
 		if ((now_ms - last_tx_ms_) >= request.timeout_s_ * 1000) {
-			request.response_->status_ = ResponseStatus::FAILURE_TIMEOUT;
+			request.response_->status(ResponseStatus::FAILURE_TIMEOUT);
 			logger.notice(F("Timeout waiting for response to function %02X from device %u"),
 				frame_[1], frame_[0]);
 		}
@@ -161,13 +161,13 @@ void SerialClient::complete() {
 	log_frame(F("<-"));
 
 	if (frame_pos_ < 4) {
-		response.status_ = ResponseStatus::FAILURE_TOO_SHORT;
+		response.status(ResponseStatus::FAILURE_TOO_SHORT);
 		logger.err(F("Received short frame from device %u"), frame_[0]);
 		return;
 	}
 
 	if (frame_pos_ > MAX_MESSAGE_SIZE) {
-		response.status_ = ResponseStatus::FAILURE_TOO_LONG;
+		response.status(ResponseStatus::FAILURE_TOO_LONG);
 		logger.err(F("Received oversized frame from device %u"), frame_[0]);
 		return;
 	}
@@ -177,39 +177,39 @@ void SerialClient::complete() {
 	uint16_t exp_crc = calc_crc();
 
 	if (exp_crc != act_crc) {
-		response.status_ = ResponseStatus::FAILURE_CRC;
+		response.status(ResponseStatus::FAILURE_CRC);
 		logger.err(F("Received frame with invalid CRC %04X from device %u with function %02X, expected %04X"),
 			act_crc, frame_[0], frame_[1], exp_crc);
 		return;
 	}
 
 	if (frame_[0] != request.device_) {
-		response.status_ = ResponseStatus::FAILURE_ADDRESS;
+		response.status(ResponseStatus::FAILURE_ADDRESS);
 		logger.err(F("Received function %02X from device %u, expected device %u"),
 			frame_[1], frame_[0], request.device_);
 		return;
 	}
 
 	if ((frame_[1] & ~0x80) != request.function_code_) {
-		response.status_ = ResponseStatus::FAILURE_FUNCTION;
+		response.status(ResponseStatus::FAILURE_FUNCTION);
 		logger.err(F("Received function %02X from device %u, expected function %02X"),
 			frame_[1], frame_[0], request.function_code_);
 		return;
 	}
 
 	if (frame_[1] & 0x80) {
-		response.status_ = ResponseStatus::EXCEPTION;
+		response.status(ResponseStatus::EXCEPTION);
 		if (frame_pos_ < 3) {
-			response.exception_code_ = 0;
+			response.exception_code(0);
 		} else {
-			response.exception_code_ = frame_[2];
+			response.exception_code(frame_[2]);
 		}
 		logger.notice(F("Exception code %02X for function %02X from device %u"),
-			response.exception_code_, frame_[1] & ~0x80, frame_[0]);
+			response.exception_code(), frame_[1] & ~0x80, frame_[0]);
 		return;
 	}
 
-	response.status_ = response.parse(frame_, frame_pos_);
+	response.status(response.parse(frame_, frame_pos_));
 }
 
 void SerialClient::log_frame(const __FlashStringHelper *prefix) {
@@ -251,14 +251,14 @@ uint16_t SerialClient::calc_crc() const {
 	return crc;
 }
 
-std::shared_ptr<RegisterDataResponse> SerialClient::read_holding_registers(
+std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers(
 		uint16_t device, uint16_t address, uint16_t size, uint8_t timeout_s) {
 	auto response = std::make_shared<RegisterDataResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
 			|| device > DeviceAddressType::MAX_UNICAST
 			|| size > 0x007D) {
-		response->status_ = ResponseStatus::FAILURE_INVALID;
+		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
 			FunctionCode::READ_HOLDING_REGISTERS, timeout_s, address, size,
@@ -268,14 +268,14 @@ std::shared_ptr<RegisterDataResponse> SerialClient::read_holding_registers(
 	return response;
 }
 
-std::shared_ptr<RegisterDataResponse> SerialClient::read_input_registers(
+std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
 		uint16_t device, uint16_t address, uint16_t size, uint8_t timeout_s) {
 	auto response = std::make_shared<RegisterDataResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
 			|| device > DeviceAddressType::MAX_UNICAST
 			|| size > 0x007D) {
-		response->status_ = ResponseStatus::FAILURE_INVALID;
+		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
 			FunctionCode::READ_INPUT_REGISTERS, timeout_s, address, size,
@@ -285,12 +285,12 @@ std::shared_ptr<RegisterDataResponse> SerialClient::read_input_registers(
 	return response;
 }
 
-std::shared_ptr<RegisterWriteResponse> SerialClient::write_holding_register(
+std::shared_ptr<const RegisterWriteResponse> SerialClient::write_holding_register(
 		uint16_t device, uint16_t address, uint16_t value, uint8_t timeout_s) {
 	auto response = std::make_shared<RegisterWriteResponse>();
 
 	if (device > DeviceAddressType::MAX_UNICAST) {
-		response->status_ = ResponseStatus::FAILURE_INVALID;
+		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
 			FunctionCode::WRITE_SINGLE_REGISTER, timeout_s, address, value,
@@ -300,13 +300,13 @@ std::shared_ptr<RegisterWriteResponse> SerialClient::write_holding_register(
 	return response;
 }
 
-std::shared_ptr<ExceptionStatusResponse> SerialClient::read_exception_status(
+std::shared_ptr<const ExceptionStatusResponse> SerialClient::read_exception_status(
 		uint16_t device, uint8_t timeout_s) {
 	auto response = std::make_shared<ExceptionStatusResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
 			|| device > DeviceAddressType::MAX_UNICAST) {
-		response->status_ = ResponseStatus::FAILURE_INVALID;
+		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<Request>(device,
 			FunctionCode::READ_EXCEPTION_STATUS, timeout_s, response));

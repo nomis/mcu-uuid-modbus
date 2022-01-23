@@ -107,14 +107,6 @@ enum ResponseStatus : uint8_t {
  * @since 0.1.0
  */
 class Response {
-	/**
-	 * SerialClient needs to be able to set the status and outcome of the
-	 * response.
-	 *
-	 * @since 0.1.0
-	 */
-	friend class SerialClient;
-
 public:
 	virtual ~Response() = default;
 
@@ -167,6 +159,14 @@ public:
 	inline ResponseStatus status() const { return status_; }
 
 	/**
+	 * Set the status of the response message.
+	 *
+	 * @param[in] status Status of the response message.
+	 * @since 0.1.0
+	 */
+	inline void status(ResponseStatus status) { status_ = status; }
+
+	/**
 	 * Get the exception code from the device response.
 	 *
 	 * Valid only if the status() is ResponseStatus::EXCEPTION or exception()
@@ -176,6 +176,27 @@ public:
 	 * @since 0.1.0
 	 */
 	inline uint8_t exception_code() const { return exception_code_; }
+
+	/**
+	 * Set the exception code from the device response.
+	 *
+	 * Valid only if the status() is ResponseStatus::EXCEPTION or exception()
+	 * returns true.
+	 *
+	 * @param[in] exception_code Exception code from the device response.
+	 * @since 0.1.0
+	 */
+	inline void exception_code(uint8_t exception_code) { exception_code_ = exception_code; }
+
+	/**
+	 * Parse a message frame buffer and store the outcome in this response.
+	 *
+	 * @param[in] frame Message frame buffer.
+	 * @param[in] len Size of message frame.
+	 * @return The status result of message parsing.
+	 * @since 0.1.0
+	 */
+	virtual ResponseStatus parse(frame_buffer_t &frame, uint16_t len) = 0;
 
 protected:
 	Response() = default;
@@ -191,16 +212,6 @@ protected:
 	 * @since 0.1.0
 	 */
 	bool check_length(frame_buffer_t &frame, uint16_t actual, uint16_t expected);
-
-	/**
-	 * Parse a message frame buffer and store the outcome in this response.
-	 *
-	 * @param[in] frame Message frame buffer.
-	 * @param[in] len Size of message frame.
-	 * @return The status result of message parsing.
-	 * @since 0.1.0
-	 */
-	virtual ResponseStatus parse(frame_buffer_t &frame, uint16_t len) = 0;
 
 private:
 	ResponseStatus status_ = ResponseStatus::QUEUED; /*!< Status of response message. @since 0.1.0 */
@@ -228,7 +239,6 @@ public:
 	 */
 	inline const std::vector<uint16_t>& data() const { return data_; };
 
-protected:
 	/**
 	 * Parse a message frame buffer and store the outcome in this response.
 	 *
@@ -239,6 +249,7 @@ protected:
 	 */
 	ResponseStatus parse(frame_buffer_t &frame, uint16_t len) override;
 
+protected:
 	std::vector<uint16_t> data_; /*!< Data from device response. @since 0.1.0 */
 };
 
@@ -263,7 +274,6 @@ public:
 	 */
 	uint16_t address() const { return address_; }
 
-protected:
 	/**
 	 * Parse a message frame buffer and store the outcome in this response.
 	 *
@@ -298,7 +308,6 @@ public:
 	 */
 	inline uint8_t data() const { return data_; };
 
-protected:
 	/**
 	 * Parse a message frame buffer and store the outcome in this response.
 	 *
@@ -462,7 +471,7 @@ public:
 	 *         future when processing is complete.
 	 * @since 0.1.0
 	 */
-	std::shared_ptr<RegisterDataResponse> read_holding_registers(uint16_t device,
+	std::shared_ptr<const RegisterDataResponse> read_holding_registers(uint16_t device,
 		uint16_t address, uint16_t size, uint8_t timeout_s = DEFAULT_TIMEOUT_S);
 
 	/**
@@ -478,7 +487,7 @@ public:
 	 *         future when processing is complete.
 	 * @since 0.1.0
 	 */
-	std::shared_ptr<RegisterDataResponse> read_input_registers(uint16_t device,
+	std::shared_ptr<const RegisterDataResponse> read_input_registers(uint16_t device,
 		uint16_t address, uint16_t size, uint8_t timeout_s = DEFAULT_TIMEOUT_S);
 
 	/**
@@ -495,7 +504,7 @@ public:
 	 *         in the future when processing is complete.
 	 * @since 0.1.0
 	 */
-	std::shared_ptr<RegisterWriteResponse> write_holding_register(uint16_t device,
+	std::shared_ptr<const RegisterWriteResponse> write_holding_register(uint16_t device,
 		uint16_t address, uint16_t value, uint8_t timeout_s = DEFAULT_TIMEOUT_S);
 
 	/**
@@ -507,7 +516,7 @@ public:
 	 *         in the future when processing is complete.
 	 * @since 0.1.0
 	 */
-	std::shared_ptr<ExceptionStatusResponse> read_exception_status(uint16_t device,
+	std::shared_ptr<const ExceptionStatusResponse> read_exception_status(uint16_t device,
 		uint8_t timeout_s = DEFAULT_TIMEOUT_S);
 
 private:
