@@ -29,9 +29,9 @@ namespace uuid {
 
 namespace modbus {
 
-Request::Request(uint16_t device, uint8_t function_code, uint8_t timeout_s,
+Request::Request(uint16_t device, uint8_t function_code, uint32_t timeout_ms,
 		const std::shared_ptr<Response> &response)
-		: device_(device), function_code_(function_code), timeout_s_(timeout_s),
+		: device_(device), function_code_(function_code), timeout_ms_(timeout_ms),
 		response_(response) {
 }
 

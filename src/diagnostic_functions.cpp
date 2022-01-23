@@ -32,7 +32,7 @@ namespace uuid {
 namespace modbus {
 
 std::shared_ptr<const ExceptionStatusResponse> SerialClient::read_exception_status(
-		uint16_t device, uint8_t timeout_s) {
+		uint16_t device, uint32_t timeout_ms) {
 	auto response = std::make_shared<ExceptionStatusResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
@@ -40,7 +40,7 @@ std::shared_ptr<const ExceptionStatusResponse> SerialClient::read_exception_stat
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<Request>(device,
-			FunctionCode::READ_EXCEPTION_STATUS, timeout_s, response));
+			FunctionCode::READ_EXCEPTION_STATUS, timeout_ms, response));
 	}
 
 	return response;

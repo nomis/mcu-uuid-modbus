@@ -131,7 +131,7 @@ void SerialClient::receive() {
 	if (frame_pos_ == 0) {
 		auto &request = *requests_.front().get();
 
-		if ((now_ms - last_tx_ms_) >= request.timeout_s() * 1000) {
+		if ((now_ms - last_tx_ms_) >= request.timeout_ms()) {
 			request.response().status(ResponseStatus::FAILURE_TIMEOUT);
 			logger.notice(F("Timeout waiting for response to function %02X from device %u"),
 				frame_[1], frame_[0]);

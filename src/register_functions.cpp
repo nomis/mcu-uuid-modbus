@@ -32,7 +32,7 @@ namespace uuid {
 namespace modbus {
 
 std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers(
-		uint16_t device, uint16_t address, uint16_t size, uint8_t timeout_s) {
+		uint16_t device, uint16_t address, uint16_t size, uint32_t timeout_ms) {
 	auto response = std::make_shared<RegisterDataResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
@@ -41,7 +41,7 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
-			FunctionCode::READ_HOLDING_REGISTERS, timeout_s, address, size,
+			FunctionCode::READ_HOLDING_REGISTERS, timeout_ms, address, size,
 			response));
 	}
 
@@ -49,7 +49,7 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers
 }
 
 std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
-		uint16_t device, uint16_t address, uint16_t size, uint8_t timeout_s) {
+		uint16_t device, uint16_t address, uint16_t size, uint32_t timeout_ms) {
 	auto response = std::make_shared<RegisterDataResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
@@ -58,7 +58,7 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
-			FunctionCode::READ_INPUT_REGISTERS, timeout_s, address, size,
+			FunctionCode::READ_INPUT_REGISTERS, timeout_ms, address, size,
 			response));
 	}
 
@@ -66,14 +66,14 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
 }
 
 std::shared_ptr<const RegisterWriteResponse> SerialClient::write_holding_register(
-		uint16_t device, uint16_t address, uint16_t value, uint8_t timeout_s) {
+		uint16_t device, uint16_t address, uint16_t value, uint32_t timeout_ms) {
 	auto response = std::make_shared<RegisterWriteResponse>();
 
 	if (device > DeviceAddressType::MAX_UNICAST) {
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
-			FunctionCode::WRITE_SINGLE_REGISTER, timeout_s, address, value,
+			FunctionCode::WRITE_SINGLE_REGISTER, timeout_ms, address, value,
 			response));
 	}
 
@@ -81,9 +81,9 @@ std::shared_ptr<const RegisterWriteResponse> SerialClient::write_holding_registe
 }
 
 RegisterRequest::RegisterRequest(uint16_t device, uint8_t function_code,
-		uint8_t timeout_s, uint16_t address, uint16_t data,
+		uint32_t timeout_ms, uint16_t address, uint16_t data,
 		const std::shared_ptr<Response> &response)
-		: Request(device, function_code, timeout_s, response),
+		: Request(device, function_code, timeout_ms, response),
 		address_(address), data_(data) {
 }
 
