@@ -50,7 +50,7 @@ void SerialClient::loop() {
 		return;
 	}
 
-	auto &response = *requests_.front()->response_.get();
+	auto &response = requests_.front()->response();
 
 	if (response.status() == ResponseStatus::QUEUED) {
 		encode();
@@ -71,7 +71,7 @@ void SerialClient::loop() {
 
 void SerialClient::encode() {
 	auto &request = *requests_.front().get();
-	auto &response = *request.response_.get();
+	auto &response = request.response();
 
 	frame_pos_ = request.encode(frame_);
 
@@ -109,7 +109,7 @@ void SerialClient::transmit() {
 
 	frame_pos_ = 0;
 	rx_frame_size_ = 0;
-	requests_.front()->response_->status(ResponseStatus::WAITING);
+	requests_.front()->response().status(ResponseStatus::WAITING);
 }
 
 void SerialClient::receive() {
@@ -142,13 +142,13 @@ void SerialClient::receive() {
 	if (frame_pos_ == 0) {
 		auto &request = *requests_.front().get();
 
-		if ((now_ms - last_tx_ms_) >= request.timeout_s_ * 1000) {
-			request.response_->status(ResponseStatus::FAILURE_TIMEOUT);
+		if ((now_ms - last_tx_ms_) >= request.timeout_s() * 1000) {
+			request.response().status(ResponseStatus::FAILURE_TIMEOUT);
 			logger.notice(F("Timeout waiting for response to function %02X from device %u"),
 				frame_[1], frame_[0]);
 		}
 	} else if (now_ms - last_rx_ms_ >= INTER_FRAME_TIMEOUT_MS) {
-		if (!requests_.front()->response_->done()) {
+		if (!requests_.front()->response().done()) {
 			complete();
 		}
 	}
@@ -156,7 +156,7 @@ void SerialClient::receive() {
 
 void SerialClient::complete() {
 	auto &request = *requests_.front().get();
-	auto &response = *request.response_.get();
+	auto &response = request.response();
 
 	log_frame(F("<-"));
 
@@ -183,17 +183,17 @@ void SerialClient::complete() {
 		return;
 	}
 
-	if (frame_[0] != request.device_) {
+	if (frame_[0] != request.device()) {
 		response.status(ResponseStatus::FAILURE_ADDRESS);
 		logger.err(F("Received function %02X from device %u, expected device %u"),
-			frame_[1], frame_[0], request.device_);
+			frame_[1], frame_[0], request.device());
 		return;
 	}
 
-	if ((frame_[1] & ~0x80) != request.function_code_) {
+	if ((frame_[1] & ~0x80) != request.function_code()) {
 		response.status(ResponseStatus::FAILURE_FUNCTION);
 		logger.err(F("Received function %02X from device %u, expected function %02X"),
-			frame_[1], frame_[0], request.function_code_);
+			frame_[1], frame_[0], request.function_code());
 		return;
 	}
 

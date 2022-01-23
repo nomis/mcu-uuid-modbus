@@ -264,17 +264,6 @@ protected:
 class RegisterWriteResponse: public RegisterDataResponse {
 public:
 	/**
-	 * Address from the device response, which should match the address
-	 * that was requested.
-	 *
-	 * Valid only if the status() is ResponseStatus::SUCCESS.
-	 *
-	 * @return Address from the response.
-	 * @since 0.1.0
-	 */
-	uint16_t address() const { return address_; }
-
-	/**
 	 * Parse a message frame buffer and store the outcome in this response.
 	 *
 	 * @param[in] frame Message frame buffer.
@@ -283,6 +272,17 @@ public:
 	 * @since 0.1.0
 	 */
 	ResponseStatus parse(frame_buffer_t &frame, uint16_t len) override;
+
+	/**
+	 * Get the address from the device response, which should match the address
+	 * that was requested.
+	 *
+	 * Valid only if the status() is ResponseStatus::SUCCESS.
+	 *
+	 * @return Address from the response.
+	 * @since 0.1.0
+	 */
+	uint16_t address() const { return address_; }
 
 private:
 	uint16_t address_; /*!< Address from device response. @since 0.1.0 */
@@ -299,16 +299,6 @@ private:
 class ExceptionStatusResponse: public Response {
 public:
 	/**
-	 * Output data from the device response.
-	 *
-	 * Valid only if the status() is ResponseStatus::SUCCESS.
-	 *
-	 * @return Output data from the response.
-	 * @since 0.1.0
-	 */
-	inline uint8_t data() const { return data_; };
-
-	/**
 	 * Parse a message frame buffer and store the outcome in this response.
 	 *
 	 * @param[in] frame Message frame buffer.
@@ -317,6 +307,16 @@ public:
 	 * @since 0.1.0
 	 */
 	ResponseStatus parse(frame_buffer_t &frame, uint16_t len) override;
+
+	/**
+	 * Get the output data from the device response.
+	 *
+	 * Valid only if the status() is ResponseStatus::SUCCESS.
+	 *
+	 * @return Output data from the response.
+	 * @since 0.1.0
+	 */
+	inline uint8_t data() const { return data_; };
 
 private:
 	uint8_t data_; /*!< Output data from device response. @since 0.1.0 */
@@ -357,32 +357,42 @@ public:
 	virtual uint16_t encode(frame_buffer_t &frame);
 
 	/**
-	 * Remote device address.
+	 * Get the destination device address.
 	 *
+	 * @return Remote device address.
 	 * @since 0.1.0
 	 */
-	const uint16_t device_;
+	inline uint16_t device() const { return device_; };
 
 	/**
-	 * Request message function code.
+	 * Get the function code of the request.
 	 *
+	 * @return Request message function code.
 	 * @since 0.1.0
 	 */
-	const uint8_t function_code_;
+	inline uint8_t function_code() const { return function_code_; };
 
 	/**
-	 * Request timeout.
+	 * Get the timeout to wait for a response in seconds.
 	 *
+	 * @return Request timeout.
 	 * @since 0.1.0
 	 */
-	const uint8_t timeout_s_;
+	inline uint8_t timeout_s() const { return timeout_s_; };
 
 	/**
-	 * Corresponding response object.
+	 * Get the response object.
 	 *
+	 * @return Corresponding response object.
 	 * @since 0.1.0
 	 */
-	const std::shared_ptr<Response> response_;
+	inline Response& response() const { return *response_.get(); };
+
+private:
+	const uint16_t device_; /*!< Remote device address. @since 0.1.0 */
+	const uint8_t function_code_; /*!< Request message function code. @since 0.1.0 */
+	const uint8_t timeout_s_; /*!< Request timeout. @since 0.1.0 */
+	const std::shared_ptr<Response> response_; /*!< Corresponding response object. @since 0.1.0 */
 };
 
 /**
@@ -420,18 +430,24 @@ public:
 	uint16_t encode(frame_buffer_t &frame) override;
 
 	/**
-	 * Register address.
+	 * Get the register address.
 	 *
+	 * @return Register address.
 	 * @since 0.1.0
 	 */
-	const uint16_t address_;
+	inline uint16_t address() const { return address_; };
 
 	/**
-	 * Register size or value.
+	 * Get the register size or value.
 	 *
+	 * @return Register size or value.
 	 * @since 0.1.0
 	 */
-	const uint16_t data_;
+	inline uint16_t data() const { return data_; };
+
+private:
+	const uint16_t address_; /*!< Register address. @since 0.1.0 */
+	const uint16_t data_; /*!< Register size or value. @since 0.1.0 */
 };
 
 /**

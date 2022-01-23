@@ -36,8 +36,8 @@ Request::Request(uint16_t device, uint8_t function_code, uint8_t timeout_s,
 }
 
 uint16_t Request::encode(frame_buffer_t &frame) {
-	frame[0] = device_;
-	frame[1] = function_code_;
+	frame[0] = device();
+	frame[1] = function_code();
 	return 2;
 }
 
@@ -49,12 +49,12 @@ RegisterRequest::RegisterRequest(uint16_t device, uint8_t function_code,
 }
 
 uint16_t RegisterRequest::encode(frame_buffer_t &frame) {
-	frame[0] = device_;
-	frame[1] = function_code_;
-	frame[2] = address_ >> 8;
-	frame[3] = address_ & 0xFF;
-	frame[4] = data_ >> 8;
-	frame[5] = data_ & 0xFF;
+	frame[0] = device();
+	frame[1] = function_code();
+	frame[2] = address() >> 8;
+	frame[3] = address() & 0xFF;
+	frame[4] = data() >> 8;
+	frame[5] = data() & 0xFF;
 	return 6;
 }
 
