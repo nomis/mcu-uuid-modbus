@@ -434,6 +434,53 @@ void wrong_function_code() {
 	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
 }
 
+/**
+ * Response with an exception that is missing the exception code.
+ */
+void exception_missing_code() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.read_input_registers(7, 0x1234, 2);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x04, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0x02, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x84, 0x03, 0xE3 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_LENGTH, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_FALSE(resp->exception());
+
+	TEST_ASSERT_EQUAL_INT(0, resp->exception_code());
+	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
@@ -449,6 +496,8 @@ int main(int argc, char *argv[]) {
 
 	RUN_TEST(wrong_device_address);
 	RUN_TEST(wrong_function_code);
+
+	RUN_TEST(exception_missing_code);
 
 	return UNITY_END();
 }

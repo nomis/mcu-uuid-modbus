@@ -185,14 +185,16 @@ void SerialClient::complete() {
 	}
 
 	if (frame_[1] & 0x80) {
-		response.status(ResponseStatus::EXCEPTION);
 		if (frame_pos_ < 3) {
-			response.exception_code(0);
+			response.status(ResponseStatus::FAILURE_LENGTH);
+			logger.notice(F("Exception with no code for function %02X from device %u"),
+				frame_[1] & ~0x80, frame_[0]);
 		} else {
+			response.status(ResponseStatus::EXCEPTION);
 			response.exception_code(frame_[2]);
+			logger.notice(F("Exception code %02X for function %02X from device %u"),
+				response.exception_code(), frame_[1] & ~0x80, frame_[0]);
 		}
-		logger.notice(F("Exception code %02X for function %02X from device %u"),
-			response.exception_code(), frame_[1] & ~0x80, frame_[0]);
 		return;
 	}
 
