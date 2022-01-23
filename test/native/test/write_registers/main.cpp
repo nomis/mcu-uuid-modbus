@@ -176,6 +176,53 @@ void write_wrong_length_too_short() {
 	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
 }
 
+/**
+ * Response with an exception.
+ */
+void write_exception() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.write_holding_register(7, 0x1234, 0xABCD);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x06, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0xAB, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0xCD, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x86, 0x04, 0xA3, 0xA2 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::EXCEPTION, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->exception());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_FALSE(resp->failed());
+
+	TEST_ASSERT_EQUAL_INT(0x04, resp->exception_code());
+	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
@@ -183,6 +230,7 @@ int main(int argc, char *argv[]) {
 
 	RUN_TEST(write_wrong_length_too_long);
 	RUN_TEST(write_wrong_length_too_short);
+	RUN_TEST(write_exception);
 
 	return UNITY_END();
 }

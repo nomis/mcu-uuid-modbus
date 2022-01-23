@@ -143,9 +143,10 @@ public:
 	bool exception() const { return status_ == ResponseStatus::EXCEPTION; }
 
 	/**
-	 * Determine if the request failed.
+	 * Determine if the request failed for a reason other than an exception.
 	 *
-	 * @return True if the request failed, otherwise false.
+	 * @return True if the request failed (without receiving an exception),
+	 *         otherwise false.
 	 * @since 0.1.0
 	 */
 	bool failed() const { return status_ > ResponseStatus::EXCEPTION; }
