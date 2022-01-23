@@ -137,9 +137,7 @@ void SerialClient::receive() {
 				frame_[1], frame_[0]);
 		}
 	} else if (now_ms - last_rx_ms_ >= INTER_FRAME_TIMEOUT_MS) {
-		if (!requests_.front()->response().done()) {
-			complete();
-		}
+		complete();
 	}
 }
 
