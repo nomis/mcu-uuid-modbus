@@ -40,7 +40,11 @@ bool Response::check_length(frame_buffer_t &frame, uint16_t actual, uint16_t exp
 }
 
 ResponseStatus RegisterDataResponse::parse(frame_buffer_t &frame, uint16_t len) {
-	if (!check_length(frame, len, 3 + 2 * frame[2])) {
+	if (len < 3) {
+		logger.err(F("Incomplete message for function %02X from device %u, expected 3+ received %u"),
+			frame[1], frame[0], len);
+		return ResponseStatus::FAILURE_LENGTH;
+	} else if (!check_length(frame, len, 3 + 2 * frame[2])) {
 		return ResponseStatus::FAILURE_LENGTH;
 	}
 
