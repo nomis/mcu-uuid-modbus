@@ -22,6 +22,9 @@
 #include <cstdarg>
 #include <cstdint>
 #include <string>
+#include <vector>
+
+extern std::vector<std::string> test_messages;
 
 namespace uuid {
 
@@ -124,7 +127,14 @@ private:
 			previous = c;
 		}
 
+		va_list ap_copy;
+		va_copy(ap_copy, ap);
 		vprintf(native_format.c_str(), ap);
+
+		std::vector<char> text(1024);
+		vsnprintf(text.data(), text.size(), native_format.c_str(), ap_copy);
+		test_messages.emplace_back(text.data());
+		va_end(ap_copy);
 	}
 };
 

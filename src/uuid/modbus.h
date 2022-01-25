@@ -538,6 +538,13 @@ public:
 
 private:
 	/**
+	 * Receive messages while idle.
+	 *
+	 * @since 0.1.0
+	 */
+	void idle();
+
+	/**
 	 * Encode the request message at the top of the queue.
 	 *
 	 * @since 0.1.0
@@ -545,14 +552,23 @@ private:
 	void encode();
 
 	/**
-	 * Transmit the current message frame.
+	 * Transmit the current message frame on the serial port device.
 	 *
 	 * @since 0.1.0
 	 */
 	void transmit();
 
 	/**
-	 * Receive a message frame.
+	 * Read message frames from the serial port device.
+	 *
+	 * @return Current time from millis() at the last read event.
+	 * @since 0.1.0
+	 */
+	uint32_t input();
+
+	/**
+	 * Receive a message frame and identify the end of a message frame (or
+	 * timeout).
 	 *
 	 * @since 0.1.0
 	 */
@@ -583,6 +599,8 @@ private:
 
 	::HardwareSerial *serial_; /*!< Serial port device. @since 0.1.0 */
 	std::deque<std::unique_ptr<Request>> requests_; /*!< Pending requests. @since 0.1.0 */
+
+	bool idle_frame_ = false; /*!< Message frame being received while idle. @since 0.1.0 */
 
 	frame_buffer_t frame_; /*!< Current message frame. @since 0.1.0 */
 	uint16_t frame_pos_ = 0; /*!< Position in message frame. @since 0.1.0 */

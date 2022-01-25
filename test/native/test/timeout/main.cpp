@@ -36,7 +36,10 @@ uint64_t get_uptime_ms() {
 
 } // namespace uuid
 
+std::vector<std::string> test_messages;
+
 void setUp() {
+	test_messages.clear();
 	fake_millis = 0;
 }
 

@@ -20,6 +20,7 @@
 #include <unity.h>
 
 #include <uuid/modbus.h>
+#include <uuid/log.h>
 
 static unsigned long fake_millis = 0;
 
@@ -36,7 +37,10 @@ uint64_t get_uptime_ms() {
 
 } // namespace uuid
 
+std::vector<std::string> test_messages;
+
 void setUp() {
+	test_messages.clear();
 	fake_millis = 0;
 }
 
@@ -481,6 +485,62 @@ void exception_missing_code() {
 	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
 }
 
+/**
+ * Read message while idle.
+ */
+void message_at_idle_1() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	client.loop();
+
+	TEST_ASSERT_EQUAL_INT(2, test_messages.size());
+	TEST_ASSERT_EQUAL_STRING("<- 07 04'01 56 78'FE B2", test_messages[0].c_str());
+	TEST_ASSERT_EQUAL_STRING("Received unexpected frame while idle from device 7",
+		test_messages[1].c_str());
+}
+
+/**
+ * Read messages while idle.
+ */
+void message_at_idle_2() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	client.loop();
+
+	device.tx_.insert(device.tx_.end(), {
+		0x08, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	client.loop();
+
+	TEST_ASSERT_EQUAL_INT(4, test_messages.size());
+	TEST_ASSERT_EQUAL_STRING("<- 07 04'01 56 78'FE B2", test_messages[0].c_str());
+	TEST_ASSERT_EQUAL_STRING("Received unexpected frame while idle from device 7",
+		test_messages[1].c_str());
+	TEST_ASSERT_EQUAL_STRING("<- 08 04'01 56 78'FE B2", test_messages[2].c_str());
+	TEST_ASSERT_EQUAL_STRING("Received unexpected frame while idle from device 8",
+		test_messages[3].c_str());
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
@@ -498,6 +558,9 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(wrong_function_code);
 
 	RUN_TEST(exception_missing_code);
+
+	RUN_TEST(message_at_idle_1);
+	RUN_TEST(message_at_idle_2);
 
 	return UNITY_END();
 }

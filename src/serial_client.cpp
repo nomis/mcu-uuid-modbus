@@ -35,7 +35,8 @@ SerialClient::SerialClient(::HardwareSerial *serial) : serial_(serial) {
 }
 
 void SerialClient::loop() {
-	if (requests_.empty()) {
+	if (requests_.empty() || idle_frame_) {
+		idle();
 		return;
 	}
 
@@ -55,6 +56,23 @@ void SerialClient::loop() {
 
 	if (response.done()) {
 		requests_.pop_front();
+	}
+}
+
+void SerialClient::idle() {
+	uint32_t now_ms = input();
+
+	if (frame_pos_ == 0) {
+		return;
+	} else {
+		idle_frame_ = true;
+	}
+
+	if (now_ms - last_rx_ms_ >= INTER_FRAME_TIMEOUT_MS) {
+		log_frame(F("<-"));
+		logger.err(F("Received unexpected frame while idle from device %u"), frame_[0]);
+		frame_pos_ = 0;
+		idle_frame_ = false;
 	}
 }
 
@@ -100,7 +118,7 @@ void SerialClient::transmit() {
 	requests_.front()->response().status(ResponseStatus::WAITING);
 }
 
-void SerialClient::receive() {
+uint32_t SerialClient::input() {
 	uint32_t now_ms = ::millis();
 	int data = 0;
 
@@ -127,6 +145,12 @@ void SerialClient::receive() {
 		}
 	} while (data != -1);
 
+	return now_ms;
+}
+
+void SerialClient::receive() {
+	uint32_t now_ms = input();
+
 	if (frame_pos_ == 0) {
 		auto &request = *requests_.front().get();
 
@@ -137,6 +161,7 @@ void SerialClient::receive() {
 		}
 	} else if (now_ms - last_rx_ms_ >= INTER_FRAME_TIMEOUT_MS) {
 		complete();
+		frame_pos_ = 0;
 	}
 }
 
