@@ -352,6 +352,105 @@ void read_exception() {
 }
 
 /**
+ * Response in multiple parts (with delays).
+ */
+void read_in_parts() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto start_time = fake_millis;
+
+	auto resp = client.read_input_registers(7, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x04, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0x01, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), { 0x07 });
+
+	client.loop();
+	fake_millis += 1;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.tx_.insert(device.tx_.end(), { 0x04 });
+
+	client.loop();
+	fake_millis += 1;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.tx_.insert(device.tx_.end(), { 0x01 });
+
+	client.loop();
+	fake_millis += 1;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.tx_.insert(device.tx_.end(), { 0x56 });
+
+	client.loop();
+	fake_millis += 1;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.tx_.insert(device.tx_.end(), { 0x78 });
+
+	client.loop();
+	fake_millis += 1;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.tx_.insert(device.tx_.end(), { 0xFE });
+
+	client.loop();
+	fake_millis += 1;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.tx_.insert(device.tx_.end(), { 0xB2 });
+
+	// Check that more time than the inter-frame timeout has been taken to
+	// receive the message
+	auto stop_time = fake_millis;
+	TEST_ASSERT_GREATER_THAN(uuid::modbus::INTER_FRAME_TIMEOUT_MS, stop_time - start_time);
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::SUCCESS, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->success());
+
+	TEST_ASSERT_EQUAL_INT(1, resp->data().size());
+	TEST_ASSERT_EQUAL_INT(0x5678, resp->data()[0]);
+}
+
+/**
  * Read 0 holding registers.
  */
 void read_holding_0() {
@@ -534,6 +633,8 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(read_wrong_length_too_long);
 	RUN_TEST(read_wrong_length_too_short);
 	RUN_TEST(read_exception);
+
+	RUN_TEST(read_in_parts);
 
 	RUN_TEST(read_holding_0);
 	RUN_TEST(read_holding_1);
