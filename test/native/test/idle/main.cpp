@@ -100,11 +100,197 @@ void message_at_idle_2() {
 		test_messages[3].c_str());
 }
 
+/**
+ * Read message while idle in parts.
+ */
+void message_at_idle_parts() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	device.tx_.insert(device.tx_.end(), { 0x07, 0x04, 0x01});
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	device.tx_.insert(device.tx_.end(), { 0x56, 0x78, 0xFE, 0xB2 });
+
+	fake_millis += 1;
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	client.loop();
+
+	TEST_ASSERT_EQUAL_INT(2, test_messages.size());
+	TEST_ASSERT_EQUAL_STRING("<- 07 04'01 56 78'FE B2", test_messages[0].c_str());
+	TEST_ASSERT_EQUAL_STRING("Received unexpected frame while idle from device 7",
+		test_messages[1].c_str());
+}
+
+/**
+ * Queue a message before reading a message at idle.
+ */
+void queue_request_before_message_at_idle() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	device.tx_.insert(device.tx_.end(), { 0x07, 0x04, 0x01});
+
+	auto resp = client.read_input_registers(7, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+	TEST_ASSERT_EQUAL_INT(0, device.rx_.size());
+
+	device.tx_.insert(device.tx_.end(), { 0x56, 0x78, 0xFE, 0xB2 });
+
+	fake_millis += 1;
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+	TEST_ASSERT_EQUAL_INT(0, device.rx_.size());
+
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	client.loop();
+
+	TEST_ASSERT_EQUAL_INT(2, test_messages.size());
+	TEST_ASSERT_EQUAL_STRING("<- 07 04'01 56 78'FE B2", test_messages[0].c_str());
+	TEST_ASSERT_EQUAL_STRING("Received unexpected frame while idle from device 7",
+		test_messages[1].c_str());
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+	TEST_ASSERT_EQUAL_INT(0, device.rx_.size());
+
+	client.loop();
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x04, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0x01, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::SUCCESS, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->success());
+
+	TEST_ASSERT_EQUAL_INT(1, resp->data().size());
+	TEST_ASSERT_EQUAL_INT(0x5678, resp->data()[0]);
+}
+
+
+/**
+ * Queue a message while reading a message at idle.
+ */
+void queue_request_while_message_at_idle() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	device.tx_.insert(device.tx_.end(), { 0x07, 0x04, 0x01});
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	auto resp = client.read_input_registers(7, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.tx_.insert(device.tx_.end(), { 0x56, 0x78, 0xFE, 0xB2 });
+
+	fake_millis += 1;
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(0, device.tx_.size());
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+	TEST_ASSERT_EQUAL_INT(0, device.rx_.size());
+
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	client.loop();
+
+	TEST_ASSERT_EQUAL_INT(2, test_messages.size());
+	TEST_ASSERT_EQUAL_STRING("<- 07 04'01 56 78'FE B2", test_messages[0].c_str());
+	TEST_ASSERT_EQUAL_STRING("Received unexpected frame while idle from device 7",
+		test_messages[1].c_str());
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+	TEST_ASSERT_EQUAL_INT(0, device.rx_.size());
+
+	client.loop();
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x04, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0x01, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::SUCCESS, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->success());
+
+	TEST_ASSERT_EQUAL_INT(1, resp->data().size());
+	TEST_ASSERT_EQUAL_INT(0x5678, resp->data()[0]);
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
 	RUN_TEST(message_at_idle_1);
 	RUN_TEST(message_at_idle_2);
+	RUN_TEST(message_at_idle_parts);
+	RUN_TEST(queue_request_before_message_at_idle);
+	RUN_TEST(queue_request_while_message_at_idle);
 
 	return UNITY_END();
 }

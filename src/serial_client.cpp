@@ -43,6 +43,12 @@ void SerialClient::loop() {
 	auto &response = requests_.front()->response();
 
 	if (response.status() == ResponseStatus::QUEUED) {
+		idle();
+
+		if (idle_frame_) {
+			return;
+		}
+
 		encode();
 	}
 
