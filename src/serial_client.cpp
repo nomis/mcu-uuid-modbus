@@ -108,7 +108,7 @@ void SerialClient::transmit() {
 	while (frame_pos_ < tx_frame_size_) {
 		int available = serial_->availableForWrite();
 
-		if (!available) {
+		if (available <= 0) {
 			return;
 		}
 
@@ -131,7 +131,7 @@ uint32_t SerialClient::input() {
 	do {
 		int available = serial_->available();
 
-		if (!available) {
+		if (available <= 0) {
 			break;
 		}
 
