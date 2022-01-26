@@ -45,6 +45,31 @@ void setUp() {
 }
 
 /**
+ * No messages while idle.
+ */
+void nothing_at_idle() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	client.loop();
+
+	fake_millis += 1;
+	client.loop();
+
+	fake_millis += 1;
+	client.loop();
+
+	fake_millis += 1;
+	client.loop();
+
+	fake_millis += 1;
+	client.loop();
+
+	TEST_ASSERT_EQUAL_INT(0, device.rx_.size());
+	TEST_ASSERT_EQUAL_INT(0, test_messages.size());
+}
+
+/**
  * Read message while idle.
  */
 void message_at_idle_1() {
@@ -286,6 +311,7 @@ void queue_request_while_message_at_idle() {
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
+	RUN_TEST(nothing_at_idle);
 	RUN_TEST(message_at_idle_1);
 	RUN_TEST(message_at_idle_2);
 	RUN_TEST(message_at_idle_parts);
