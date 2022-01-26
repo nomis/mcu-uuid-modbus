@@ -45,7 +45,18 @@ namespace uuid {
 namespace modbus {
 
 constexpr uint16_t MAX_MESSAGE_SIZE = 256; /*!< Maximum size of a message. @since 0.1.0 */
-constexpr uint32_t INTER_FRAME_TIMEOUT_MS = 2; /*!< Timeout between frames (in milliseconds). @since 0.1.0 */
+/**
+ * Timeout between frames (in milliseconds).
+ *
+ * 9600 bps: 4ms
+ * 19200 bps: 2ms
+ * Minimum: 1.75ms
+ *
+ * Allow an extra 1ms to compensate for timing at 1ms precision.
+ *
+ * @since 0.1.0
+ */
+constexpr uint32_t INTER_FRAME_TIMEOUT_MS = 5;
 constexpr uint32_t DEFAULT_TIMEOUT_MS = 10000; /*!< Default time to wait for a response (in milliseconds). @since 0.1.0 */
 
 extern const uuid::log::Logger logger; /*!< uuid::log::Logger instance for Modbus library. @since 0.1.0 */

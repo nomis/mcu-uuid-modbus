@@ -1,43 +1,43 @@
 Reading from device at address 160
 0+00:00:00.001 T [modbus] -> 7B 04'00 A0 00 04'FA 71
-0+00:00:00.074 T [modbus] <- 7B 04'04 12 34 56 78 90 AB CD EF'EA C2
+0+00:00:00.077 T [modbus] <- 7B 04'04 12 34 56 78 90 AB CD EF'EA C2
 Data: 4660 22136 37035 52719
 
 Reading from device at address 164
-0+00:00:00.076 T [modbus] -> 7B 04'00 A4 00 04'BB B0
-0+00:00:00.149 T [modbus] <- 7B 04'04 23 45 67 89 0A BC DE F1'23 0D
+0+00:00:00.079 T [modbus] -> 7B 04'00 A4 00 04'BB B0
+0+00:00:00.155 T [modbus] <- 7B 04'04 23 45 67 89 0A BC DE F1'23 0D
 Data: 9029 26505 2748 57073
 
 Reading from device at address 168
-0+00:00:00.151 T [modbus] -> 7B 04'00 A8 00 04'7B B3
-0+00:00:00.224 T [modbus] <- 7B 04'04 34 56 78 90 AB CD EF 12'79 75
+0+00:00:00.157 T [modbus] -> 7B 04'00 A8 00 04'7B B3
+0+00:00:00.233 T [modbus] <- 7B 04'04 34 56 78 90 AB CD EF 12'79 75
 Data: 13398 30864 43981 61202
 
 Reading from device at address 172
-0+00:00:00.226 T [modbus] -> 7B 04'00 AC 00 04'3A 72
-0+00:00:00.299 T [modbus] <- 7B 04'04 45 67 89 0A BC DE F1 23'EE FF
-0+00:00:00.299 E [modbus] Received frame with invalid CRC FFEE from device 123 with function 04, expected 66EE
+0+00:00:00.235 T [modbus] -> 7B 04'00 AC 00 04'3A 72
+0+00:00:00.311 T [modbus] <- 7B 04'04 45 67 89 0A BC DE F1 23'EE FF
+0+00:00:00.311 E [modbus] Received frame with invalid CRC FFEE from device 123 with function 04, expected 66EE
 Failed
 
 Reading from device at address 176
-0+00:00:00.301 T [modbus] -> 7B 04'00 B0 00 04'FB B4
-0+00:00:00.366 T [modbus] <- 7B 84'02'E3 18
-0+00:00:00.366 N [modbus] Exception code 02 for function 04 from device 123
+0+00:00:00.313 T [modbus] -> 7B 04'00 B0 00 04'FB B4
+0+00:00:00.381 T [modbus] <- 7B 84'02'E3 18
+0+00:00:00.381 N [modbus] Exception code 02 for function 04 from device 123
 Failed
 
 Reading from device at address 180
-0+00:00:00.368 T [modbus] -> 7B 04'00 B4 00 04'BA 75
-0+00:00:00.439 T [modbus] <- 7B 04'03 56 78 9A BC DE F0'34 15
+0+00:00:00.383 T [modbus] -> 7B 04'00 B4 00 04'BA 75
+0+00:00:00.457 T [modbus] <- 7B 04'03 56 78 9A BC DE F0'34 15
 Invalid number of registers in response: 3
 
 Reading from device at address 184
-0+00:00:00.441 T [modbus] -> 7B 04'00 B8 00 04'7A 76
-0+00:00:00.516 T [modbus] <- 7B 04'04 67 89 AB CD EF 01 23 45 67 89'76 C2
-0+00:00:00.516 E [modbus] Length mismatch for function 04 from device 123, expected 11 received 13
+0+00:00:00.459 T [modbus] -> 7B 04'00 B8 00 04'7A 76
+0+00:00:00.537 T [modbus] <- 7B 04'04 67 89 AB CD EF 01 23 45 67 89'76 C2
+0+00:00:00.537 E [modbus] Length mismatch for function 04 from device 123, expected 11 received 13
 Failed
 
 Reading from device at address 188
-0+00:00:00.518 T [modbus] -> 7B 04'00 BC 00 04'3B B7
-0+00:00:10.526 N [modbus] Timeout waiting for response to function 04 from device 123
+0+00:00:00.539 T [modbus] -> 7B 04'00 BC 00 04'3B B7
+0+00:00:10.547 N [modbus] Timeout waiting for response to function 04 from device 123
 Failed
 
