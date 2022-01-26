@@ -51,40 +51,11 @@ void read_input_0() {
 	uuid::modbus::SerialClient client{&device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 0);
-	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
-	TEST_ASSERT_TRUE(resp->pending());
-	TEST_ASSERT_FALSE(resp->done());
-
-	client.loop();
-	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
-	TEST_ASSERT_TRUE(resp->pending());
-	TEST_ASSERT_FALSE(resp->done());
-
-	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
-	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
-	TEST_ASSERT_EQUAL_UINT8(0x04, device.rx_[1]);
-	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
-	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
-	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[4]);
-	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[5]);
-
-	device.rx_.clear();
-	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x04, 0x00, 0xC2, 0xC1 });
-
-	client.loop();
-	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
-	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
-	TEST_ASSERT_TRUE(resp->pending());
-	TEST_ASSERT_FALSE(resp->done());
-
-	client.loop();
-	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::SUCCESS, resp->status());
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
 	TEST_ASSERT_FALSE(resp->pending());
 	TEST_ASSERT_TRUE(resp->done());
-	TEST_ASSERT_TRUE(resp->success());
-
-	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_TRUE(resp->failed());
 }
 
 /**
@@ -388,40 +359,11 @@ void read_holding_0() {
 	uuid::modbus::SerialClient client{&device};
 
 	auto resp = client.read_holding_registers(7, 0x1234, 0);
-	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
-	TEST_ASSERT_TRUE(resp->pending());
-	TEST_ASSERT_FALSE(resp->done());
-
-	client.loop();
-	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
-	TEST_ASSERT_TRUE(resp->pending());
-	TEST_ASSERT_FALSE(resp->done());
-
-	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
-	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
-	TEST_ASSERT_EQUAL_UINT8(0x03, device.rx_[1]);
-	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
-	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
-	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[4]);
-	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[5]);
-
-	device.rx_.clear();
-	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x03, 0x00, 0xC0, 0xF1 });
-
-	client.loop();
-	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
-	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
-	TEST_ASSERT_TRUE(resp->pending());
-	TEST_ASSERT_FALSE(resp->done());
-
-	client.loop();
-	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::SUCCESS, resp->status());
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
 	TEST_ASSERT_FALSE(resp->pending());
 	TEST_ASSERT_TRUE(resp->done());
-	TEST_ASSERT_TRUE(resp->success());
-
-	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_TRUE(resp->failed());
 }
 
 /**

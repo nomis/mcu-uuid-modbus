@@ -37,7 +37,7 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers
 
 	if (device < DeviceAddressType::MIN_UNICAST
 			|| device > DeviceAddressType::MAX_UNICAST
-			|| size > 0x007D) {
+			|| size < 1 || size > 0x007D) {
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
@@ -54,7 +54,7 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
 
 	if (device < DeviceAddressType::MIN_UNICAST
 			|| device > DeviceAddressType::MAX_UNICAST
-			|| size > 0x007D) {
+			|| size < 1 || size > 0x007D) {
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
