@@ -19,6 +19,7 @@
 #ifndef ARDUINO_H_
 #define ARDUINO_H_
 
+#include <assert.h>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -81,7 +82,7 @@ public:
 
 	int read() override {
 		if (!tx_.empty()) {
-			uint8_t value = tx_.front();
+			int value = tx_.front();
 			tx_.pop_front();
 			return value;
 		} else {
@@ -102,18 +103,22 @@ public:
 	}
 
 	size_t write(uint8_t c) override {
+		assert(available_write_ >= 1);
 		rx_.push_back(c);
+		available_write_ -= 1;
 		return 1;
 	}
 
 	size_t write(const uint8_t *buffer, size_t size) override {
+		assert(available_write_ >= size);
 		rx_.insert(rx_.end(), buffer, buffer + size);
+		available_write_ -= size;
 		return size;
 	}
 
-	int available_write_ = 512;
-	std::deque<uint8_t> rx_;
-	std::deque<uint8_t> tx_;
+	size_t available_write_ = 512;
+	std::deque<int> rx_;
+	std::deque<int> tx_;
 };
 
 #endif
