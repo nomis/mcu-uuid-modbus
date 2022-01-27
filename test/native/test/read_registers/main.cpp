@@ -215,6 +215,36 @@ void read_input_126() {
 }
 
 /**
+ * Try to read from the broadcast device address.
+ */
+void read_input_broadcast() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.read_input_registers(0, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * Try to read from a reserved device address.
+ */
+void read_input_reserved_device() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.read_input_registers(248, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
  * Response has the wrong length for the message data.
  */
 void read_wrong_length_too_long() {
@@ -784,6 +814,36 @@ void read_holding_126() {
 	TEST_ASSERT_TRUE(resp->failed());
 }
 
+/**
+ * Try to read from the broadcast device address.
+ */
+void read_holding_broadcast() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.read_holding_registers(0, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * Try to read from a reserved device address.
+ */
+void read_holding_reserved_device() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.read_holding_registers(248, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
@@ -792,6 +852,9 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(read_input_2);
 	RUN_TEST(read_input_125);
 	RUN_TEST(read_input_126);
+
+	RUN_TEST(read_input_broadcast);
+	RUN_TEST(read_input_reserved_device);
 
 	RUN_TEST(read_wrong_length_too_long);
 	RUN_TEST(read_wrong_length_too_short);
@@ -806,6 +869,9 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(read_holding_2);
 	RUN_TEST(read_holding_125);
 	RUN_TEST(read_holding_126);
+
+	RUN_TEST(read_holding_broadcast);
+	RUN_TEST(read_holding_reserved_device);
 
 	return UNITY_END();
 }
