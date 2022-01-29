@@ -485,6 +485,80 @@ void exception_missing_code() {
 	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
 }
 
+/**
+ * Write to the broadcast device address but get an unexpected response from a device.
+ */
+void write_holding_broadcast_device_response1() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.write_holding_register(0, 0x1234, 0xABCD, 100);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x06, 0x12, 0x34, 0xAB, 0xCD, 0x73, 0xBF });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_UNEXPECTED, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+	TEST_ASSERT_FALSE(resp->success());
+
+	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+}
+
+/**
+ * Write to the broadcast device address but get an unexpected response from the broadcast address.
+ */
+void write_holding_broadcast_device_response2() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.write_holding_register(0, 0x1234, 0xABCD, 100);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x00, 0x06, 0x12, 0x34, 0xAB, 0xCD, 0x72, 0x08 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_UNEXPECTED, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+	TEST_ASSERT_FALSE(resp->success());
+
+	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
@@ -502,6 +576,9 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(wrong_function_code);
 
 	RUN_TEST(exception_missing_code);
+
+	RUN_TEST(write_holding_broadcast_device_response1);
+	RUN_TEST(write_holding_broadcast_device_response2);
 
 	return UNITY_END();
 }

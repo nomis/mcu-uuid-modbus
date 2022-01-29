@@ -107,6 +107,7 @@ enum ResponseStatus : uint8_t {
 	FAILURE_ADDRESS, /*!< Response from another device. @since 0.1.0 */
 	FAILURE_FUNCTION, /*!< Unexpected function code in response. @since 0.1.0 */
 	FAILURE_LENGTH, /*!< Incorrect response length. @since 0.1.0 */
+	FAILURE_UNEXPECTED, /*!< Received a response to broadcast request. @since 0.1.0 */
 };
 
 /**
@@ -524,10 +525,12 @@ public:
 	 * The response message contains the register address followed by the
 	 * register value returned.
 	 *
+	 * For a broadcast request, use timeout_ms to set the turnaround delay.
+	 *
 	 * @param[in] device Device address (DeviceAddressTypes::BROADCAST to DeviceAddressTypes::MAX_UNICAST).
 	 * @param[in] address Register address (0x0000 to 0xFFFF).
 	 * @param[in] value Register value.
-	 * @param[in] timeout_ms Timeout to wait for a response in milliseconds.
+	 * @param[in] timeout_ms Timeout to wait for a response (or turnaround delay) in milliseconds.
 	 * @return A response message that will contain the outcome and echoed data
 	 *         in the future when processing is complete.
 	 * @since 0.1.0

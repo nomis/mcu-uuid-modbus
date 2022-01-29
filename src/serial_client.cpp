@@ -161,9 +161,13 @@ void SerialClient::receive() {
 		auto &request = *requests_.front().get();
 
 		if ((now_ms - last_tx_ms_) >= request.timeout_ms()) {
-			request.response().status(ResponseStatus::FAILURE_TIMEOUT);
-			logger.notice(F("Timeout waiting for response to function %02X from device %u"),
-				frame_[1], frame_[0]);
+			if (request.device() == DeviceAddressType::BROADCAST) {
+				request.response().status(ResponseStatus::SUCCESS);
+			} else {
+				request.response().status(ResponseStatus::FAILURE_TIMEOUT);
+				logger.notice(F("Timeout waiting for response to function %02X from device %u"),
+					frame_[1], frame_[0]);
+			}
 		}
 	} else if (now_ms - last_rx_ms_ >= INTER_FRAME_TIMEOUT_MS) {
 		complete();
@@ -197,6 +201,13 @@ void SerialClient::complete() {
 		response.status(ResponseStatus::FAILURE_CRC);
 		logger.err(F("Received frame with invalid CRC %04X from device %u with function %02X, expected %04X"),
 			act_crc, frame_[0], frame_[1], exp_crc);
+		return;
+	}
+
+	if (request.device() == DeviceAddressType::BROADCAST) {
+		response.status(ResponseStatus::FAILURE_UNEXPECTED);
+		logger.err(F("Received unexpected broadcast response with function code %02X from device %u"),
+			frame_[1], frame_[0]);
 		return;
 	}
 
