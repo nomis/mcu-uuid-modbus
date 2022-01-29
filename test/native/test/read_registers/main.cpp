@@ -48,7 +48,7 @@ void setUp() {
  */
 void read_input_0() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 0);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -63,7 +63,7 @@ void read_input_0() {
  */
 void read_input_1() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 1);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -108,7 +108,7 @@ void read_input_1() {
  */
 void read_input_2() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 2);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -154,7 +154,7 @@ void read_input_2() {
  */
 void read_input_125() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 125);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -204,7 +204,7 @@ void read_input_125() {
  */
 void read_input_126() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 126);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -219,7 +219,7 @@ void read_input_126() {
  */
 void read_input_broadcast() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(0, 0x1234, 1);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -234,7 +234,7 @@ void read_input_broadcast() {
  */
 void read_input_reserved_device() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(248, 0x1234, 1);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -249,7 +249,7 @@ void read_input_reserved_device() {
  */
 void read_wrong_length_too_long() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 2);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -294,7 +294,7 @@ void read_wrong_length_too_long() {
  */
 void read_wrong_length_too_short1() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 2);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -339,7 +339,7 @@ void read_wrong_length_too_short1() {
  */
 void read_wrong_length_too_short2() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 2);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -384,7 +384,7 @@ void read_wrong_length_too_short2() {
  */
 void read_exception() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 2);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -431,7 +431,7 @@ void read_exception() {
  */
 void read_receive_in_parts() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto start_time = fake_millis;
 
@@ -530,7 +530,7 @@ void read_receive_in_parts() {
  */
 void read_receive_in_parts_with_errors() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto start_time = fake_millis;
 
@@ -637,7 +637,7 @@ void read_receive_in_parts_with_errors() {
  */
 void read_transmit_in_parts() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	device.available_write_ = 4;
 
@@ -693,7 +693,7 @@ void read_transmit_in_parts() {
  */
 void read_holding_0() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_holding_registers(7, 0x1234, 0);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -708,7 +708,7 @@ void read_holding_0() {
  */
 void read_holding_1() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_holding_registers(7, 0x1234, 1);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -753,7 +753,7 @@ void read_holding_1() {
  */
 void read_holding_2() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_holding_registers(7, 0x1234, 2);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -799,7 +799,7 @@ void read_holding_2() {
  */
 void read_holding_125() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_holding_registers(7, 0x1234, 125);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -849,7 +849,7 @@ void read_holding_125() {
  */
 void read_holding_126() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_holding_registers(7, 0x1234, 126);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -864,7 +864,7 @@ void read_holding_126() {
  */
 void read_holding_broadcast() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_holding_registers(0, 0x1234, 1);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -879,7 +879,7 @@ void read_holding_broadcast() {
  */
 void read_holding_reserved_device() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_holding_registers(248, 0x1234, 1);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());

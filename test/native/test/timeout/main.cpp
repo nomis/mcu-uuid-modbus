@@ -48,7 +48,7 @@ void setUp() {
  */
 void no_response() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_input_registers(7, 0x1234, 1);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());

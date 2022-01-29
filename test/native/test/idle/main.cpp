@@ -49,7 +49,7 @@ void setUp() {
  */
 void nothing_at_idle() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	client.loop();
 
@@ -74,7 +74,7 @@ void nothing_at_idle() {
  */
 void message_at_idle_1() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	device.tx_.insert(device.tx_.end(), {
 		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
@@ -96,7 +96,7 @@ void message_at_idle_1() {
  */
 void message_at_idle_2() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	device.tx_.insert(device.tx_.end(), {
 		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
@@ -130,7 +130,7 @@ void message_at_idle_2() {
  */
 void message_at_idle_parts() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	device.tx_.insert(device.tx_.end(), { 0x07, 0x04, 0x01});
 
@@ -157,7 +157,7 @@ void message_at_idle_parts() {
  */
 void queue_request_before_message_at_idle() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	device.tx_.insert(device.tx_.end(), { 0x07, 0x04, 0x01});
 
@@ -238,7 +238,7 @@ void queue_request_before_message_at_idle() {
  */
 void queue_request_while_message_at_idle() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	device.tx_.insert(device.tx_.end(), { 0x07, 0x04, 0x01});
 

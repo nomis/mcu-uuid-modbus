@@ -31,7 +31,7 @@ namespace uuid {
 
 namespace modbus {
 
-SerialClient::SerialClient(::HardwareSerial *serial) : serial_(serial) {
+SerialClient::SerialClient(::HardwareSerial &serial) : serial_(serial) {
 }
 
 void SerialClient::loop() {
@@ -106,7 +106,7 @@ void SerialClient::encode() {
 
 void SerialClient::transmit() {
 	while (frame_pos_ < tx_frame_size_) {
-		int available = serial_->availableForWrite();
+		int available = serial_.availableForWrite();
 
 		if (available <= 0) {
 			return;
@@ -114,7 +114,7 @@ void SerialClient::transmit() {
 
 		int len = std::min(available, tx_frame_size_ - frame_pos_);
 
-		serial_->write(&frame_[frame_pos_], len);
+		serial_.write(&frame_[frame_pos_], len);
 		frame_pos_ += len;
 
 		last_tx_ms_ = ::millis();
@@ -129,14 +129,14 @@ uint32_t SerialClient::input() {
 	int data = 0;
 
 	do {
-		int available = serial_->available();
+		int available = serial_.available();
 
 		if (available <= 0) {
 			break;
 		}
 
 		while (available-- > 0) {
-			data = serial_->read();
+			data = serial_.read();
 
 			if (data == -1) {
 				break;

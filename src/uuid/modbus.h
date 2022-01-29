@@ -476,7 +476,7 @@ public:
 	 * @param[in] serial Serial port device.
 	 * @since 0.1.0
 	 */
-	SerialClient(::HardwareSerial *serial);
+	SerialClient(::HardwareSerial &serial);
 
 	~SerialClient() = default;
 
@@ -611,7 +611,7 @@ private:
 	 */
 	uint16_t calc_crc() const;
 
-	::HardwareSerial *serial_; /*!< Serial port device. @since 0.1.0 */
+	::HardwareSerial &serial_; /*!< Serial port device. @since 0.1.0 */
 	std::deque<std::unique_ptr<Request>> requests_; /*!< Pending requests. @since 0.1.0 */
 
 	bool idle_frame_ = false; /*!< Message frame being received while idle. @since 0.1.0 */

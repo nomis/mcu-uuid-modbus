@@ -48,7 +48,7 @@ void setUp() {
  */
 void read_exception_status() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_exception_status(11);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -88,7 +88,7 @@ void read_exception_status() {
  */
 void read_exception_status_broadcast() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_exception_status(0);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -103,7 +103,7 @@ void read_exception_status_broadcast() {
  */
 void read_exception_status_reserved_device() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_exception_status(248);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());
@@ -118,7 +118,7 @@ void read_exception_status_reserved_device() {
  */
 void read_exception_status_wrong_length_too_long() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_exception_status(11);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -159,7 +159,7 @@ void read_exception_status_wrong_length_too_long() {
  */
 void read_exception_status_wrong_length_too_short() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.read_exception_status(11);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());

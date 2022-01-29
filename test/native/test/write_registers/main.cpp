@@ -48,7 +48,7 @@ void setUp() {
  */
 void write_holding_1() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.write_holding_register(7, 0x1234, 0xABCD);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -94,7 +94,7 @@ void write_holding_1() {
  */
 void write_wrong_length_too_long() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.write_holding_register(7, 0x1234, 0xABCD);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -139,7 +139,7 @@ void write_wrong_length_too_long() {
  */
 void write_wrong_length_too_short() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.write_holding_register(7, 0x1234, 0xABCD);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -184,7 +184,7 @@ void write_wrong_length_too_short() {
  */
 void write_exception() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.write_holding_register(7, 0x1234, 0xABCD);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -231,7 +231,7 @@ void write_exception() {
  */
 void write_holding_broadcast_device() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.write_holding_register(0, 0x1234, 0xABCD, 100);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
@@ -273,7 +273,7 @@ void write_holding_broadcast_device() {
  */
 void write_holding_reserved_device() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	auto resp = client.write_holding_register(248, 0x1234, 0xABCD);
 	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_INVALID, resp->status());

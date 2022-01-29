@@ -45,7 +45,7 @@ void setUp() {
 
 void test() {
 	ModbusDevice device;
-	uuid::modbus::SerialClient client{&device};
+	uuid::modbus::SerialClient client{device};
 
 	client.read_exception_status(2);
 	client.loop();
