@@ -486,6 +486,56 @@ void exception_missing_code() {
 }
 
 /**
+ * Response with exception data that is too long.
+ *
+ * This is currently allowed because it's more useful to get the exception code
+ * than complain about the extra data.
+ */
+void exception_too_long() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{&device};
+
+	auto resp = client.read_input_registers(7, 0x1234, 2);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x04, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0x02, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x84, 0x04, 0xFF, 0x03, 0xF9 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::EXCEPTION, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->exception());
+	TEST_ASSERT_FALSE(resp->success());
+	TEST_ASSERT_FALSE(resp->failed());
+
+	TEST_ASSERT_EQUAL_INT(0x04, resp->exception_code());
+	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+}
+
+/**
  * Write to the broadcast device address but get an unexpected response from a device.
  */
 void write_holding_broadcast_device_response1() {
@@ -576,6 +626,7 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(wrong_function_code);
 
 	RUN_TEST(exception_missing_code);
+	RUN_TEST(exception_too_long);
 
 	RUN_TEST(write_holding_broadcast_device_response1);
 	RUN_TEST(write_holding_broadcast_device_response2);

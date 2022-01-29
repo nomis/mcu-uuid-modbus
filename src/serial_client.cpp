@@ -228,7 +228,7 @@ void SerialClient::complete() {
 	if (frame_[1] & 0x80) {
 		if (frame_pos_ < 3) {
 			response.status(ResponseStatus::FAILURE_LENGTH);
-			logger.notice(F("Exception with no code for function %02X from device %u"),
+			logger.err(F("Exception with no code for function %02X from device %u"),
 				frame_[1] & ~0x80, frame_[0]);
 		} else {
 			response.status(ResponseStatus::EXCEPTION);
