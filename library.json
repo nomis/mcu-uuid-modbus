@@ -1,6 +1,6 @@
 {
 	"name": "uuid-modbus",
-	"description": "Modbus library",
+	"description": "Asynchronous Modbus library",
 	"keywords": "modbus",
 	"authors": [
 		{
