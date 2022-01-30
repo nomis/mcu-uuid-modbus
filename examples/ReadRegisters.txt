@@ -1,43 +1,43 @@
-Reading from device at address 160
-0+00:00:00.001 T [modbus] -> 7B 04'00 A0 00 04'FA 71
-0+00:00:00.077 T [modbus] <- 7B 04'04 12 34 56 78 90 AB CD EF'EA C2
-Data: 4660 22136 37035 52719
+000+00:00:00.000 I [example] Reading from device at address 00A0
+000+00:00:00.001 T [modbus] -> 7B 04'00 A0 00 04'FA 71
+000+00:00:00.077 T [modbus] <- 7B 04'04 12 34 56 78 90 AB CD EF'EA C2
+000+00:00:00.077 I [example] Data: 1234 5678 90AB CDEF
 
-Reading from device at address 164
-0+00:00:00.079 T [modbus] -> 7B 04'00 A4 00 04'BB B0
-0+00:00:00.155 T [modbus] <- 7B 04'04 23 45 67 89 0A BC DE F1'23 0D
-Data: 9029 26505 2748 57073
+000+00:00:00.078 I [example] Reading from device at address 00A4
+000+00:00:00.079 T [modbus] -> 7B 04'00 A4 00 04'BB B0
+000+00:00:00.155 T [modbus] <- 7B 04'04 23 45 67 89 0A BC DE F1'23 0D
+000+00:00:00.155 I [example] Data: 2345 6789 0ABC DEF1
 
-Reading from device at address 168
-0+00:00:00.157 T [modbus] -> 7B 04'00 A8 00 04'7B B3
-0+00:00:00.233 T [modbus] <- 7B 04'04 34 56 78 90 AB CD EF 12'79 75
-Data: 13398 30864 43981 61202
+000+00:00:00.156 I [example] Reading from device at address 00A8
+000+00:00:00.157 T [modbus] -> 7B 04'00 A8 00 04'7B B3
+000+00:00:00.233 T [modbus] <- 7B 04'04 34 56 78 90 AB CD EF 12'79 75
+000+00:00:00.233 I [example] Data: 3456 7890 ABCD EF12
 
-Reading from device at address 172
-0+00:00:00.235 T [modbus] -> 7B 04'00 AC 00 04'3A 72
-0+00:00:00.311 T [modbus] <- 7B 04'04 45 67 89 0A BC DE F1 23'EE FF
-0+00:00:00.311 E [modbus] Received frame with invalid CRC FFEE from device 123 with function 04, expected 66EE
-Failed
+000+00:00:00.234 I [example] Reading from device at address 00AC
+000+00:00:00.235 T [modbus] -> 7B 04'00 AC 00 04'3A 72
+000+00:00:00.311 T [modbus] <- 7B 04'04 45 67 89 0A BC DE F1 23'EE FF
+000+00:00:00.311 E [modbus] Received frame with invalid CRC FFEE from device 123 with function 04, expected 66EE
+000+00:00:00.311 E [example] Failed
 
-Reading from device at address 176
-0+00:00:00.313 T [modbus] -> 7B 04'00 B0 00 04'FB B4
-0+00:00:00.381 T [modbus] <- 7B 84'02'E3 18
-0+00:00:00.381 N [modbus] Exception code 02 for function 04 from device 123
-Failed
+000+00:00:00.312 I [example] Reading from device at address 00B0
+000+00:00:00.313 T [modbus] -> 7B 04'00 B0 00 04'FB B4
+000+00:00:00.381 T [modbus] <- 7B 84'02'E3 18
+000+00:00:00.381 N [modbus] Exception code 02 for function 04 from device 123
+000+00:00:00.381 E [example] Failed
 
-Reading from device at address 180
-0+00:00:00.383 T [modbus] -> 7B 04'00 B4 00 04'BA 75
-0+00:00:00.457 T [modbus] <- 7B 04'03 56 78 9A BC DE F0'34 15
-Invalid number of registers in response: 3
+000+00:00:00.382 I [example] Reading from device at address 00B4
+000+00:00:00.383 T [modbus] -> 7B 04'00 B4 00 04'BA 75
+000+00:00:00.457 T [modbus] <- 7B 04'03 56 78 9A BC DE F0'34 15
+000+00:00:00.457 E [example] Invalid number of registers in response: 3
 
-Reading from device at address 184
-0+00:00:00.459 T [modbus] -> 7B 04'00 B8 00 04'7A 76
-0+00:00:00.537 T [modbus] <- 7B 04'04 67 89 AB CD EF 01 23 45 67 89'76 C2
-0+00:00:00.537 E [modbus] Length mismatch for function 04 from device 123, expected 11 received 13
-Failed
+000+00:00:00.458 I [example] Reading from device at address 00B8
+000+00:00:00.459 T [modbus] -> 7B 04'00 B8 00 04'7A 76
+000+00:00:00.537 T [modbus] <- 7B 04'04 67 89 AB CD EF 01 23 45 67 89'76 C2
+000+00:00:00.537 E [modbus] Length mismatch for function 04 from device 123, expected 11 received 13
+000+00:00:00.537 E [example] Failed
 
-Reading from device at address 188
-0+00:00:00.539 T [modbus] -> 7B 04'00 BC 00 04'3B B7
-0+00:00:10.547 N [modbus] Timeout waiting for response to function 04 from device 123
-Failed
+000+00:00:00.538 I [example] Reading from device at address 00BC
+000+00:00:00.539 T [modbus] -> 7B 04'00 BC 00 04'3B B7
+000+00:00:10.547 N [modbus] Timeout waiting for response to function 04 from device 123
+000+00:00:10.547 E [example] Failed
 
