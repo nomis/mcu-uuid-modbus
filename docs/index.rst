@@ -41,6 +41,7 @@ Resources
    Source code <https://github.com/nomis/mcu-uuid-modbus>
    Releases <https://github.com/nomis/mcu-uuid-modbus/releases>
    Namespace reference <https://mcu-doxygen.uuid.uk/namespaceuuid_1_1modbus.html>
+   PlatformIO library <https://registry.platformio.org/libraries/nomis/uuid-modbus>
    changelog
    Issue tracker <https://github.com/nomis/mcu-uuid-modbus/issues>
 
