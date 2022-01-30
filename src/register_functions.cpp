@@ -32,7 +32,7 @@ namespace uuid {
 namespace modbus {
 
 std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers(
-		uint16_t device, uint16_t address, uint16_t size, uint32_t timeout_ms) {
+		uint16_t device, uint16_t address, uint16_t size, uint16_t timeout_ms) {
 	auto response = std::make_shared<RegisterDataResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
@@ -49,7 +49,7 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers
 }
 
 std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
-		uint16_t device, uint16_t address, uint16_t size, uint32_t timeout_ms) {
+		uint16_t device, uint16_t address, uint16_t size, uint16_t timeout_ms) {
 	auto response = std::make_shared<RegisterDataResponse>();
 
 	if (device < DeviceAddressType::MIN_UNICAST
@@ -66,7 +66,7 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
 }
 
 std::shared_ptr<const RegisterWriteResponse> SerialClient::write_holding_register(
-		uint16_t device, uint16_t address, uint16_t value, uint32_t timeout_ms) {
+		uint16_t device, uint16_t address, uint16_t value, uint16_t timeout_ms) {
 	auto response = std::make_shared<RegisterWriteResponse>();
 
 	if (device > DeviceAddressType::MAX_UNICAST) {
@@ -81,7 +81,7 @@ std::shared_ptr<const RegisterWriteResponse> SerialClient::write_holding_registe
 }
 
 RegisterRequest::RegisterRequest(uint16_t device, uint8_t function_code,
-		uint32_t timeout_ms, uint16_t address, uint16_t data,
+		uint16_t timeout_ms, uint16_t address, uint16_t data,
 		const std::shared_ptr<Response> &response)
 		: Request(device, function_code, timeout_ms, response),
 		address_(address), data_(data) {

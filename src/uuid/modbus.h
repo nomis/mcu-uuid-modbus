@@ -57,7 +57,7 @@ constexpr uint16_t MAX_MESSAGE_SIZE = 256; /*!< Maximum size of a message. @sinc
  * @since 0.1.0
  */
 constexpr uint32_t INTER_FRAME_TIMEOUT_MS = 5;
-constexpr uint32_t DEFAULT_TIMEOUT_MS = 10000; /*!< Default time to wait for a response (in milliseconds). @since 0.1.0 */
+constexpr uint16_t DEFAULT_TIMEOUT_MS = 10000; /*!< Default time to wait for a response (in milliseconds). @since 0.1.0 */
 
 extern const uuid::log::Logger logger; /*!< uuid::log::Logger instance for Modbus library. @since 0.1.0 */
 
@@ -357,7 +357,7 @@ public:
 	 * @param[in] response Response object.
 	 * @since 0.1.0
 	 */
-	Request(uint16_t device, uint8_t function_code, uint32_t timeout_ms,
+	Request(uint16_t device, uint8_t function_code, uint16_t timeout_ms,
 		const std::shared_ptr<Response> &response);
 
 	/**
@@ -391,7 +391,7 @@ public:
 	 * @return Request timeout.
 	 * @since 0.1.0
 	 */
-	inline uint32_t timeout_ms() const { return timeout_ms_; };
+	inline uint16_t timeout_ms() const { return timeout_ms_; };
 
 	/**
 	 * Get the response object.
@@ -404,7 +404,7 @@ public:
 private:
 	const uint16_t device_; /*!< Remote device address. @since 0.1.0 */
 	const uint8_t function_code_; /*!< Request message function code. @since 0.1.0 */
-	const uint32_t timeout_ms_; /*!< Request timeout. @since 0.1.0 */
+	const uint16_t timeout_ms_; /*!< Request timeout. @since 0.1.0 */
 	const std::shared_ptr<Response> response_; /*!< Corresponding response object. @since 0.1.0 */
 };
 
@@ -429,7 +429,7 @@ public:
 	 * @param[in] response Response object.
 	 * @since 0.1.0
 	 */
-	RegisterRequest(uint16_t device, uint8_t function_code, uint32_t timeout_ms,
+	RegisterRequest(uint16_t device, uint8_t function_code, uint16_t timeout_ms,
 		uint16_t address, uint16_t data,
 		const std::shared_ptr<Response> &response);
 
@@ -501,7 +501,7 @@ public:
 	 * @since 0.1.0
 	 */
 	std::shared_ptr<const RegisterDataResponse> read_holding_registers(uint16_t device,
-		uint16_t address, uint16_t size, uint32_t timeout_ms = DEFAULT_TIMEOUT_MS);
+		uint16_t address, uint16_t size, uint16_t timeout_ms = DEFAULT_TIMEOUT_MS);
 
 	/**
 	 * Read a contiguous block of input registers from a remote device.
@@ -517,7 +517,7 @@ public:
 	 * @since 0.1.0
 	 */
 	std::shared_ptr<const RegisterDataResponse> read_input_registers(uint16_t device,
-		uint16_t address, uint16_t size, uint32_t timeout_ms = DEFAULT_TIMEOUT_MS);
+		uint16_t address, uint16_t size, uint16_t timeout_ms = DEFAULT_TIMEOUT_MS);
 
 	/**
 	 * Write to a single holding register in a remote device.
@@ -536,7 +536,7 @@ public:
 	 * @since 0.1.0
 	 */
 	std::shared_ptr<const RegisterWriteResponse> write_holding_register(uint16_t device,
-		uint16_t address, uint16_t value, uint32_t timeout_ms = DEFAULT_TIMEOUT_MS);
+		uint16_t address, uint16_t value, uint16_t timeout_ms = DEFAULT_TIMEOUT_MS);
 
 	/**
 	 * Read exception status from a remote device.
@@ -548,7 +548,7 @@ public:
 	 * @since 0.1.0
 	 */
 	std::shared_ptr<const ExceptionStatusResponse> read_exception_status(uint16_t device,
-		uint32_t timeout_ms = DEFAULT_TIMEOUT_MS);
+		uint16_t timeout_ms = DEFAULT_TIMEOUT_MS);
 
 private:
 	/**
