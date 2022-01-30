@@ -7,7 +7,12 @@ Unreleased_
 Added
 ~~~~~
 
-* Support for reading or writing of registers over a UART.
+* Serial device client support for the following Modbus functions:
+
+  * Read Holding Registers
+  * Read Input Registers
+  * Write Single Register
+  * Read Exception Status
 
 .. |--| unicode:: U+2013 .. EN DASH
 
