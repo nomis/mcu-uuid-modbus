@@ -4,6 +4,11 @@ Change log
 Unreleased_
 -----------
 
+0.1.0_ |--| 2022-01-30
+----------------------
+
+First stable release.
+
 Added
 ~~~~~
 

@@ -1,6 +1,7 @@
 .PHONY: all build native coverage doxygen
 
 all: build native doxygen
+	python3 version_check.py
 
 build:
 	rm -rf build/*/.pio
