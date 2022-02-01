@@ -32,8 +32,8 @@ Output
 .. |loop()| replace:: ``loop()``
 .. _loop(): https://mcu-doxygen.uuid.uk/classuuid_1_1modbus_1_1SerialClient.html#a1799cf77470b87aa2da4cbd60600b009
 
-.. _reading: https://mcu-doxygen.uuid.uk/classuuid_1_1modbus_1_1SerialClient.html#a6c24b0c75450f41b42b4a41d4ece6e58
-.. _writing: https://mcu-doxygen.uuid.uk/classuuid_1_1modbus_1_1SerialClient.html#a7b75b019f1218a62aac0f64c85bae830
+.. _reading: https://mcu-doxygen.uuid.uk/classuuid_1_1modbus_1_1SerialClient.html#ac4297b6dc49725871713fb83e7b03cfb
+.. _writing: https://mcu-doxygen.uuid.uk/classuuid_1_1modbus_1_1SerialClient.html#acca227a0cbed1222fc4ef5806c470b77
 
 .. |done()| replace:: ``done()``
 .. _done(): https://mcu-doxygen.uuid.uk/classuuid_1_1modbus_1_1Response.html#a8b5e2e5189768c45fe5ddf85f5eee48b
