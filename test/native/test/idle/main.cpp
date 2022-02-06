@@ -214,7 +214,7 @@ void queue_request_before_message_at_idle() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+		0x07, 0x04, 0x02, 0x56, 0x78, 0x0E, 0xB2 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -290,7 +290,7 @@ void queue_request_while_message_at_idle() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+		0x07, 0x04, 0x02, 0x56, 0x78, 0x0E, 0xB2 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;

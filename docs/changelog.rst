@@ -4,6 +4,14 @@ Change log
 Unreleased_
 -----------
 
+Fixed
+~~~~~
+
+* Handling of responses to the following Modbus functions:
+
+  * Read Holding Registers
+  * Read Input Registers
+
 0.1.0_ |--| 2022-01-30
 ----------------------
 

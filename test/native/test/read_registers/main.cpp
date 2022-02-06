@@ -85,7 +85,7 @@ void read_input_1() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+		0x07, 0x04, 0x02, 0x56, 0x78, 0x0E, 0xB2 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -130,7 +130,7 @@ void read_input_2() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x04, 0x02, 0xAB, 0xCD, 0xEF, 0x12, 0x68, 0x62 });
+		0x07, 0x04, 0x04, 0xAB, 0xCD, 0xEF, 0x12, 0xE0, 0x62 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -175,11 +175,11 @@ void read_input_125() {
 	TEST_ASSERT_EQUAL_UINT8(0x7D, device.rx_[5]);
 
 	device.rx_.clear();
-	device.tx_.insert(device.tx_.end(), {0x07, 0x04, 0x7D});
+	device.tx_.insert(device.tx_.end(), {0x07, 0x04, 2 * 125});
 	for (uint8_t i = 1; i <= 125; i++) {
 		device.tx_.insert(device.tx_.end(), {0x00, i});
 	}
-	device.tx_.insert(device.tx_.end(), {0xF5, 0x2C});
+	device.tx_.insert(device.tx_.end(), {0x45, 0xA9});
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -271,7 +271,7 @@ void read_wrong_length_too_long() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x04, 0x03 /* should be 0x02 */, 0xAB, 0xCD, 0xEF, 0x12, 0x55, 0xA2 });
+		0x07, 0x04, 0x06 /* should be 0x04 */, 0xAB, 0xCD, 0xEF, 0x12, 0x99, 0xA2 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -316,7 +316,7 @@ void read_wrong_length_too_short1() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x04, 0x01 /* should be 0x02 */, 0xAB, 0xCD, 0xEF, 0x12, 0x2C, 0x62 });
+		0x07, 0x04, 0x02 /* should be 0x04 */, 0xAB, 0xCD, 0xEF, 0x12, 0x68, 0x62 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -362,6 +362,51 @@ void read_wrong_length_too_short2() {
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
 		0x07, 0x04, 0x02, 0x43 });
+
+	client.loop();
+	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_LENGTH, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+	TEST_ASSERT_FALSE(resp->success());
+
+	TEST_ASSERT_EQUAL_INT(0, resp->data().size());
+}
+
+/**
+ * Response has an odd number of bytes.
+ */
+void read_wrong_length_odd_number() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	auto resp = client.read_input_registers(7, 0x1234, 2);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	client.loop();
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::WAITING, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	TEST_ASSERT_EQUAL_INT(8, device.rx_.size());
+	TEST_ASSERT_EQUAL_UINT8(0x07, device.rx_[0]);
+	TEST_ASSERT_EQUAL_UINT8(0x04, device.rx_[1]);
+	TEST_ASSERT_EQUAL_UINT8(0x12, device.rx_[2]);
+	TEST_ASSERT_EQUAL_UINT8(0x34, device.rx_[3]);
+	TEST_ASSERT_EQUAL_UINT8(0x00, device.rx_[4]);
+	TEST_ASSERT_EQUAL_UINT8(0x02, device.rx_[5]);
+
+	device.rx_.clear();
+	device.tx_.insert(device.tx_.end(), {
+		0x07, 0x04, 0x05 /* should be 0x04 */, 0xAB, 0xCD, 0xEF, 0x12, 0x00, 0x62, 0x59 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -470,7 +515,7 @@ void read_receive_in_parts() {
 	TEST_ASSERT_TRUE(resp->pending());
 	TEST_ASSERT_FALSE(resp->done());
 
-	device.tx_.insert(device.tx_.end(), { 0x01 });
+	device.tx_.insert(device.tx_.end(), { 0x02 });
 
 	client.loop();
 	fake_millis += 1;
@@ -494,7 +539,7 @@ void read_receive_in_parts() {
 	TEST_ASSERT_TRUE(resp->pending());
 	TEST_ASSERT_FALSE(resp->done());
 
-	device.tx_.insert(device.tx_.end(), { 0xFE });
+	device.tx_.insert(device.tx_.end(), { 0x0E });
 
 	client.loop();
 	fake_millis += 1;
@@ -577,7 +622,7 @@ void read_receive_in_parts_with_errors() {
 	TEST_ASSERT_TRUE(resp->pending());
 	TEST_ASSERT_FALSE(resp->done());
 
-	device.tx_.insert(device.tx_.end(), { 0x01 });
+	device.tx_.insert(device.tx_.end(), { 0x02 });
 
 	client.loop();
 	fake_millis += 1;
@@ -601,7 +646,7 @@ void read_receive_in_parts_with_errors() {
 	TEST_ASSERT_TRUE(resp->pending());
 	TEST_ASSERT_FALSE(resp->done());
 
-	device.tx_.insert(device.tx_.end(), { 0xFE });
+	device.tx_.insert(device.tx_.end(), { 0x0E });
 
 	client.loop();
 	fake_millis += 1;
@@ -670,7 +715,7 @@ void read_transmit_in_parts() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x04, 0x01, 0x56, 0x78, 0xFE, 0xB2 });
+		0x07, 0x04, 0x02, 0x56, 0x78, 0x0E, 0xB2 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -730,7 +775,7 @@ void read_holding_1() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x03, 0x01, 0x56, 0x78, 0xFF, 0xC6 });
+		0x07, 0x03, 0x02, 0x56, 0x78, 0x0F, 0xC6 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -775,7 +820,7 @@ void read_holding_2() {
 
 	device.rx_.clear();
 	device.tx_.insert(device.tx_.end(), {
-		0x07, 0x03, 0x02, 0xAB, 0xCD, 0xEF, 0x12, 0x69, 0xD5 });
+		0x07, 0x03, 0x04, 0xAB, 0xCD, 0xEF, 0x12, 0xE1, 0xD5 });
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -820,11 +865,11 @@ void read_holding_125() {
 	TEST_ASSERT_EQUAL_UINT8(0x7D, device.rx_[5]);
 
 	device.rx_.clear();
-	device.tx_.insert(device.tx_.end(), {0x07, 0x03, 0x7D});
+	device.tx_.insert(device.tx_.end(), {0x07, 0x03, 2 * 125});
 	for (uint8_t i = 1; i <= 125; i++) {
 		device.tx_.insert(device.tx_.end(), {0x00, i});
 	}
-	device.tx_.insert(device.tx_.end(), {0x0D, 0x67});
+	device.tx_.insert(device.tx_.end(), {0xBD, 0xE2});
 
 	client.loop();
 	fake_millis += uuid::modbus::INTER_FRAME_TIMEOUT_MS;
@@ -904,6 +949,7 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(read_wrong_length_too_long);
 	RUN_TEST(read_wrong_length_too_short1);
 	RUN_TEST(read_wrong_length_too_short2);
+	RUN_TEST(read_wrong_length_odd_number);
 	RUN_TEST(read_exception);
 
 	RUN_TEST(read_receive_in_parts);

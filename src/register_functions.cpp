@@ -102,12 +102,16 @@ ResponseStatus RegisterDataResponse::parse(frame_buffer_t &frame, uint16_t len) 
 		logger.err(F("Incomplete message for function %02X from device %u, expected 3+ received %u"),
 			frame[1], frame[0], len);
 		return ResponseStatus::FAILURE_LENGTH;
-	} else if (!check_length(frame, len, 3 + 2 * frame[2])) {
+	} else if (!check_length(frame, len, 3 + frame[2])) {
+		return ResponseStatus::FAILURE_LENGTH;
+	} else if (frame[2] & 1) {
+		logger.err(F("Invalid message for function %02X from device %u, byte count %u is not a multiple of 2"),
+			frame[1], frame[0], frame[2]);
 		return ResponseStatus::FAILURE_LENGTH;
 	}
 
-	for (uint16_t i = 0; i < frame[2]; i++) {
-		data_.emplace_back((frame[3 + i * 2] << 8) | frame[4 + i * 2]);
+	for (uint16_t i = 0; i < frame[2]; i += 2) {
+		data_.emplace_back((frame[3 + i] << 8) | frame[4 + i]);
 	}
 
 	return ResponseStatus::SUCCESS;
