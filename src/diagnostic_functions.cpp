@@ -39,6 +39,10 @@ std::shared_ptr<const ExceptionStatusResponse> SerialClient::read_exception_stat
 			|| device > DeviceAddressType::MAX_UNICAST) {
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
+		if (timeout_ms == 0) {
+			timeout_ms = default_unicast_timeout_ms_;
+		}
+
 		requests_.push_back(std::make_unique<Request>(device,
 			FunctionCode::READ_EXCEPTION_STATUS, timeout_ms, response));
 	}

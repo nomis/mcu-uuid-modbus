@@ -4,6 +4,11 @@ Change log
 Unreleased_
 -----------
 
+Added
+~~~~~
+
+* Configuration of the default timeout for requests.
+
 0.1.1_ |--| 2022-02-06
 ----------------------
 

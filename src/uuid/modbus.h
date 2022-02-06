@@ -57,7 +57,8 @@ constexpr uint16_t MAX_MESSAGE_SIZE = 256; /*!< Maximum size of a message. @sinc
  * @since 0.1.0
  */
 constexpr uint32_t INTER_FRAME_TIMEOUT_MS = 5;
-constexpr uint16_t DEFAULT_TIMEOUT_MS = 10000; /*!< Default time to wait for a response (in milliseconds). @since 0.1.0 */
+constexpr uint16_t DEFAULT_UNICAST_TIMEOUT_MS = 10000; /*!< Default time to wait for a unicast response (in milliseconds). @since 0.2.0 */
+constexpr uint16_t DEFAULT_BROADCAST_TIMEOUT_MS = 1000; /*!< Default time to wait after a broadcast request (in milliseconds). @since 0.2.0 */
 
 extern const uuid::log::Logger logger; /*!< uuid::log::Logger instance for Modbus library. @since 0.1.0 */
 
@@ -488,6 +489,36 @@ public:
 	void loop();
 
 	/**
+	 * Get the default timeout for new unicast requests.
+	 *
+	 * @return Timeout to wait for a response in milliseconds.
+	 * @since 0.2.0
+	 */
+	inline uint16_t default_unicast_timeout_ms() const { return default_unicast_timeout_ms_; }
+	/**
+	 * Set the default timeout for new unicast requests.
+	 *
+	 * @param[in] timeout_ms Timeout to wait for a response in milliseconds.
+	 * @since 0.2.0
+	 */
+	inline void default_unicast_timeout_ms(uint16_t timeout_ms) { default_unicast_timeout_ms_ = timeout_ms; }
+
+	/**
+	 * Get the default timeout for new broadcast requests.
+	 *
+	 * @return Delay after a request in milliseconds.
+	 * @since 0.2.0
+	 */
+	inline uint16_t default_broadcast_delay_ms() const { return default_broadcast_timeout_ms_; }
+	/**
+	 * Set the default timeout for new broadcast requests.
+	 *
+	 * @param[in] timeout_ms Delay after a request in milliseconds.
+	 * @since 0.2.0
+	 */
+	inline void default_broadcast_delay_ms(uint16_t timeout_ms) { default_broadcast_timeout_ms_ = timeout_ms; }
+
+	/**
 	 * Read a contiguous block of holding registers from a remote device.
 	 *
 	 * The response message contains the register values returned.
@@ -501,7 +532,7 @@ public:
 	 * @since 0.1.0
 	 */
 	std::shared_ptr<const RegisterDataResponse> read_holding_registers(uint16_t device,
-		uint16_t address, uint16_t size, uint16_t timeout_ms = DEFAULT_TIMEOUT_MS);
+		uint16_t address, uint16_t size, uint16_t timeout_ms = 0);
 
 	/**
 	 * Read a contiguous block of input registers from a remote device.
@@ -517,7 +548,7 @@ public:
 	 * @since 0.1.0
 	 */
 	std::shared_ptr<const RegisterDataResponse> read_input_registers(uint16_t device,
-		uint16_t address, uint16_t size, uint16_t timeout_ms = DEFAULT_TIMEOUT_MS);
+		uint16_t address, uint16_t size, uint16_t timeout_ms = 0);
 
 	/**
 	 * Write to a single holding register in a remote device.
@@ -536,7 +567,7 @@ public:
 	 * @since 0.1.0
 	 */
 	std::shared_ptr<const RegisterWriteResponse> write_holding_register(uint16_t device,
-		uint16_t address, uint16_t value, uint16_t timeout_ms = DEFAULT_TIMEOUT_MS);
+		uint16_t address, uint16_t value, uint16_t timeout_ms = 0);
 
 	/**
 	 * Read exception status from a remote device.
@@ -548,7 +579,7 @@ public:
 	 * @since 0.1.0
 	 */
 	std::shared_ptr<const ExceptionStatusResponse> read_exception_status(uint16_t device,
-		uint16_t timeout_ms = DEFAULT_TIMEOUT_MS);
+		uint16_t timeout_ms = 0);
 
 private:
 	/**
@@ -613,6 +644,8 @@ private:
 
 	::HardwareSerial &serial_; /*!< Serial port device. @since 0.1.0 */
 	std::deque<std::unique_ptr<Request>> requests_; /*!< Pending requests. @since 0.1.0 */
+	uint16_t default_unicast_timeout_ms_ = DEFAULT_UNICAST_TIMEOUT_MS; /*!< Default timeout for new unicast requests. @since 0.2.0 */
+	uint16_t default_broadcast_timeout_ms_ = DEFAULT_BROADCAST_TIMEOUT_MS; /*!< Default timeout for new broadcast requests. @since 0.2.0 */
 
 	bool idle_frame_ = false; /*!< Message frame being received while idle. @since 0.1.0 */
 

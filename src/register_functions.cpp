@@ -40,6 +40,10 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_holding_registers
 			|| size < 1 || size > 0x007D) {
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
+		if (timeout_ms == 0) {
+			timeout_ms = default_unicast_timeout_ms_;
+		}
+
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
 			FunctionCode::READ_HOLDING_REGISTERS, timeout_ms, address, size,
 			response));
@@ -57,6 +61,10 @@ std::shared_ptr<const RegisterDataResponse> SerialClient::read_input_registers(
 			|| size < 1 || size > 0x007D) {
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
+		if (timeout_ms == 0) {
+			timeout_ms = default_unicast_timeout_ms_;
+		}
+
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
 			FunctionCode::READ_INPUT_REGISTERS, timeout_ms, address, size,
 			response));
@@ -72,6 +80,14 @@ std::shared_ptr<const RegisterWriteResponse> SerialClient::write_holding_registe
 	if (device > DeviceAddressType::MAX_UNICAST) {
 		response->status(ResponseStatus::FAILURE_INVALID);
 	} else {
+		if (timeout_ms == 0) {
+			if (device == DeviceAddressType::BROADCAST) {
+				timeout_ms = default_broadcast_timeout_ms_;
+			} else {
+				timeout_ms = default_unicast_timeout_ms_;
+			}
+		}
+
 		requests_.push_back(std::make_unique<RegisterRequest>(device,
 			FunctionCode::WRITE_SINGLE_REGISTER, timeout_ms, address, value,
 			response));
