@@ -734,6 +734,134 @@ void read_transmit_in_parts() {
 }
 
 /**
+ * No response at all to a read input request should result in a timeout.
+ */
+void read_input_no_response() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	auto resp = client.read_input_registers(7, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(10000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read input request should result in a timeout.
+ */
+void read_input_no_response_explicit_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	auto resp = client.read_input_registers(7, 0x1234, 1, 8000);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read input request should result in a timeout.
+ */
+void read_input_no_response_implicit_default_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	client.default_unicast_timeout_ms(8000);
+
+	auto resp = client.read_input_registers(7, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read input request should result in a timeout.
+ */
+void read_input_no_response_explicit_default_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	client.default_unicast_timeout_ms(8000);
+
+	auto resp = client.read_input_registers(7, 0x1234, 1, 0);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
  * Read 0 holding registers.
  */
 void read_holding_0() {
@@ -934,6 +1062,134 @@ void read_holding_reserved_device() {
 	TEST_ASSERT_TRUE(resp->failed());
 }
 
+/**
+ * No response at all to a read holding request should result in a timeout.
+ */
+void read_holding_no_response() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	auto resp = client.read_holding_registers(7, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(10000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read holding request should result in a timeout.
+ */
+void read_holding_no_response_explicit_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	auto resp = client.read_holding_registers(7, 0x1234, 1, 8000);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read holding request should result in a timeout.
+ */
+void read_holding_no_response_implicit_default_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	client.default_unicast_timeout_ms(8000);
+
+	auto resp = client.read_holding_registers(7, 0x1234, 1);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read holding request should result in a timeout.
+ */
+void read_holding_no_response_explicit_default_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	client.default_unicast_timeout_ms(8000);
+
+	auto resp = client.read_holding_registers(7, 0x1234, 1, 0);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
@@ -956,6 +1212,11 @@ int main(int argc, char *argv[]) {
 	RUN_TEST(read_receive_in_parts_with_errors);
 	RUN_TEST(read_transmit_in_parts);
 
+	RUN_TEST(read_input_no_response);
+	RUN_TEST(read_input_no_response_explicit_timeout);
+	RUN_TEST(read_input_no_response_implicit_default_timeout);
+	RUN_TEST(read_input_no_response_explicit_default_timeout);
+
 	RUN_TEST(read_holding_0);
 	RUN_TEST(read_holding_1);
 	RUN_TEST(read_holding_2);
@@ -964,6 +1225,11 @@ int main(int argc, char *argv[]) {
 
 	RUN_TEST(read_holding_broadcast);
 	RUN_TEST(read_holding_reserved_device);
+
+	RUN_TEST(read_holding_no_response);
+	RUN_TEST(read_holding_no_response_explicit_timeout);
+	RUN_TEST(read_holding_no_response_implicit_default_timeout);
+	RUN_TEST(read_holding_no_response_explicit_default_timeout);
 
 	return UNITY_END();
 }

@@ -195,6 +195,134 @@ void read_exception_status_wrong_length_too_short() {
 	TEST_ASSERT_EQUAL_INT(0, resp->data());
 }
 
+/**
+ * No response at all to a read exception status request should result in a timeout.
+ */
+void read_exception_status_no_response() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	auto resp = client.read_exception_status(11);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(10000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read exception status request should result in a timeout.
+ */
+void read_exception_status_no_response_explicit_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	auto resp = client.read_exception_status(11, 8000);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read exception status request should result in a timeout.
+ */
+void read_exception_status_no_response_implicit_default_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	client.default_unicast_timeout_ms(8000);
+
+	auto resp = client.read_exception_status(11);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
+/**
+ * No response at all to a read exception status request should result in a timeout.
+ */
+void read_exception_status_no_response_explicit_default_timeout() {
+	ModbusDevice device;
+	uuid::modbus::SerialClient client{device};
+
+	client.default_unicast_timeout_ms(8000);
+
+	auto resp = client.read_exception_status(11, 0);
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::QUEUED, resp->status());
+	TEST_ASSERT_TRUE(resp->pending());
+	TEST_ASSERT_FALSE(resp->done());
+
+	while (1) {
+		client.loop();
+
+		if (resp->done()) {
+			break;
+		}
+
+		fake_millis++;
+		TEST_ASSERT_LESS_THAN(15000, fake_millis);
+	}
+
+	TEST_ASSERT_EQUAL_INT(8000, fake_millis);
+
+	TEST_ASSERT_EQUAL_INT(uuid::modbus::ResponseStatus::FAILURE_TIMEOUT, resp->status());
+	TEST_ASSERT_FALSE(resp->pending());
+	TEST_ASSERT_TRUE(resp->done());
+	TEST_ASSERT_TRUE(resp->failed());
+}
+
 int main(int argc, char *argv[]) {
 	UNITY_BEGIN();
 
@@ -205,6 +333,11 @@ int main(int argc, char *argv[]) {
 
 	RUN_TEST(read_exception_status_wrong_length_too_long);
 	RUN_TEST(read_exception_status_wrong_length_too_short);
+
+	RUN_TEST(read_exception_status_no_response);
+	RUN_TEST(read_exception_status_no_response_explicit_timeout);
+	RUN_TEST(read_exception_status_no_response_implicit_default_timeout);
+	RUN_TEST(read_exception_status_no_response_explicit_default_timeout);
 
 	return UNITY_END();
 }
