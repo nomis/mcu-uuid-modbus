@@ -45,6 +45,8 @@ namespace uuid {
 namespace modbus {
 
 constexpr uint16_t MAX_MESSAGE_SIZE = 256; /*!< Maximum size of a message. @since 0.1.0 */
+constexpr uint16_t MESSAGE_HEADER_SIZE = 2; /*!< Size of message header (device address and function code). @since 0.1.2 */
+constexpr uint16_t MESSAGE_CRC_SIZE = 2; /*!< Size of message CRC. @since 0.1.2 */
 /**
  * Timeout between frames (in milliseconds).
  *

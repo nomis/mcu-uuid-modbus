@@ -88,7 +88,7 @@ void SerialClient::encode() {
 
 	frame_pos_ = request.encode(frame_);
 
-	if (frame_pos_ > MAX_MESSAGE_SIZE - 2) {
+	if (frame_pos_ > MAX_MESSAGE_SIZE - MESSAGE_CRC_SIZE) {
 		response.status(ResponseStatus::FAILURE_INVALID);
 		return;
 	}
@@ -181,7 +181,7 @@ void SerialClient::complete() {
 
 	log_frame(F("<-"));
 
-	if (frame_pos_ < 4) {
+	if (frame_pos_ < MESSAGE_HEADER_SIZE + MESSAGE_CRC_SIZE) {
 		response.status(ResponseStatus::FAILURE_TOO_SHORT);
 		logger.err(F("Received short frame from device %u"), frame_[0]);
 		return;
@@ -194,7 +194,7 @@ void SerialClient::complete() {
 	}
 
 	uint16_t act_crc = (frame_[frame_pos_ - 1] << 8) | frame_[frame_pos_ - 2];
-	frame_pos_ -= 2;
+	frame_pos_ -= MESSAGE_CRC_SIZE;
 	uint16_t exp_crc = calc_crc();
 
 	if (exp_crc != act_crc) {
@@ -245,12 +245,15 @@ void SerialClient::complete() {
 void SerialClient::log_frame(const __FlashStringHelper *prefix) {
 	if (logger.enabled(uuid::log::Level::TRACE)) {
 		static constexpr uint8_t BYTES_PER_LINE = 16;
-		std::vector<char> message(3 * BYTES_PER_LINE + 1);
+		static constexpr uint8_t CHARS_PER_BYTE = 3;
+		std::vector<char> message(CHARS_PER_BYTE * BYTES_PER_LINE + 1);
 		uint8_t pos = 0;
 
 		for (uint16_t i = 0; i < frame_pos_; i++) {
-			snprintf_P(&message[3 * pos++], 4, PSTR("%c%02X"),
-				(i == 2 || i == frame_pos_ - 2) ? '\'' : ' ',
+			snprintf_P(&message[CHARS_PER_BYTE * pos++], CHARS_PER_BYTE + 1,
+				PSTR("%c%02X"),
+				(i == MESSAGE_HEADER_SIZE || i == frame_pos_ - MESSAGE_CRC_SIZE)
+					? '\'' : ' ',
 				frame_[i]);
 
 			if (pos == BYTES_PER_LINE || i == frame_pos_ - 1) {
