@@ -26,7 +26,10 @@ namespace uuid {
 
 namespace modbus {
 
+//! @cond false
 static const char __pstr__loggername[] __attribute__((__aligned__(sizeof(int)))) PROGMEM = "modbus";
+//! @endcond
+
 const uuid::log::Logger logger{reinterpret_cast<const __FlashStringHelper *>(__pstr__loggername), uuid::log::Facility::DAEMON};
 
 } // namespace modbus
