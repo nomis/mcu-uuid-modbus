@@ -1,7 +1,7 @@
 #ifndef UUID_MODBUS_MAKE_UNIQUE_CPP_
 #define UUID_MODBUS_MAKE_UNIQUE_CPP_
 
-#ifndef __cpp_lib_make_unique
+#if !defined(__cpp_lib_make_unique) && !defined(DOXYGEN)
 
 #include <memory>
 
